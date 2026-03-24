@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Cookie {
+  id        Int        @id @default(autoincrement())
+  label     String
+  value     String
+  status    String     @default("UNKNOWN") // ACTIVE, EXPIRED, UNKNOWN
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  schedules Schedule[]
+  logs      Log[]
+}
+
+model Schedule {
+  id        Int      @id @default(autoincrement())
+  name      String
+  cookieId  Int
+  cookie    Cookie   @relation(fields: [cookieId], references: [id], onDelete: Cascade)
+  time      String   // HH:mm format
+  frequency String   @default("DAILY") // DAILY, WEEKLY, CUSTOM
+  type      String   // LOGIN, LOGOUT, LOGIN_THEN_LOGOUT
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  logs      Log[]
+}
+
+model Log {
+  id         Int      @id @default(autoincrement())
+  scheduleId Int?
+  schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  cookieId   Int?
+  cookie     Cookie?  @relation(fields: [cookieId], references: [id], onDelete: SetNull)
+  actionType String   // LOGIN, LOGOUT
+  status     String   // SUCCESS, FAILED
+  response   String?
+  executedAt DateTime @default(now())
+}
