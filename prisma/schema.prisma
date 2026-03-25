@@ -7,14 +7,15 @@ datasource db {
 }
 
 model Cookie {
-  id        Int        @id @default(autoincrement())
-  label     String
-  value     String
-  status    String     @default("UNKNOWN") // ACTIVE, EXPIRED, UNKNOWN
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  schedules Schedule[]
-  logs      Log[]
+  id                Int      @id @default(autoincrement())
+  label             String
+  agentRouterCookie String?  // Cookie for agentrouter.org domain
+  githubCookie      String?  // Cookie for github.com domain
+  status            String   @default("UNKNOWN") // ACTIVE, EXPIRED, UNKNOWN
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  schedules         Schedule[]
+  logs              Log[]
 }
 
 model Schedule {
@@ -32,13 +33,25 @@ model Schedule {
 }
 
 model Log {
-  id         Int      @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   scheduleId Int?
-  schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  schedule   Schedule?   @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
   cookieId   Int?
-  cookie     Cookie?  @relation(fields: [cookieId], references: [id], onDelete: SetNull)
-  actionType String   // LOGIN, LOGOUT
-  status     String   // SUCCESS, FAILED
+  cookie     Cookie?     @relation(fields: [cookieId], references: [id], onDelete: SetNull)
+  actionType String      // LOGIN, LOGOUT
+  status     String      // SUCCESS, FAILED, RUNNING
   response   String?
-  executedAt DateTime @default(now())
+  executedAt DateTime    @default(now())
+  entries    LogEntry[]
+}
+
+model LogEntry {
+  id        Int      @id @default(autoincrement())
+  logId     Int
+  log       Log      @relation(fields: [logId], references: [id], onDelete: Cascade)
+  step      String   // Name of the step (e.g., "Starting API request", "Validating cookie")
+  level     String   // INFO, WARN, ERROR, DEBUG
+  message   String   // Detailed message of the step
+  metadata  String?  // JSON string for additional data (request/response body, headers, etc.)
+  timestamp DateTime @default(now())
 }
