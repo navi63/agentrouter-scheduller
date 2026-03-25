@@ -36,12 +36,30 @@ async function executeScheduleAction(scheduleId: number) {
   }
 
   for (const action of actions) {
+    let log: any = null;
     try {
+      // Create log entry with RUNNING status
+      log = await prisma.log.create({
+        data: {
+          scheduleId: schedule.id,
+          cookieId: schedule.cookie.id,
+          actionType: action,
+          status: "RUNNING",
+          response: "Execution in progress...",
+        },
+      });
+
+      console.log(
+        `[Scheduler] Started ${action} for ${schedule.cookie.label} (Log ID: ${log.id})`
+      );
+
       let result;
       if (action === "LOGIN") {
-        result = await executeLogin(schedule.cookie.value);
+        const cookieValue = schedule.cookie.agentRouterCookie || schedule.cookie.githubCookie || "";
+        result = await executeLogin(cookieValue, schedule.cookie.id, prisma, log.id);
       } else {
-        result = await executeLogout(schedule.cookie.value);
+        const cookieValue = schedule.cookie.agentRouterCookie || schedule.cookie.githubCookie || "";
+        result = await executeLogout(cookieValue, prisma, log.id);
       }
 
       // Update cookie status
@@ -50,12 +68,10 @@ async function executeScheduleAction(scheduleId: number) {
         data: { status: result.success ? "ACTIVE" : "EXPIRED" },
       });
 
-      // Create log entry
-      await prisma.log.create({
+      // Update log entry with final status
+      await prisma.log.update({
+        where: { id: log.id },
         data: {
-          scheduleId: schedule.id,
-          cookieId: schedule.cookie.id,
-          actionType: action,
           status: result.success ? "SUCCESS" : "FAILED",
           response: result.message,
         },
@@ -66,15 +82,16 @@ async function executeScheduleAction(scheduleId: number) {
       );
     } catch (error) {
       console.error(`[Scheduler] Error executing ${action}:`, error);
-      await prisma.log.create({
-        data: {
-          scheduleId: schedule.id,
-          cookieId: schedule.cookie.id,
-          actionType: action,
-          status: "FAILED",
-          response: `Error: ${error instanceof Error ? error.message : String(error)}`,
-        },
-      });
+      // Update log entry with FAILED status
+      if (log) {
+        await prisma.log.update({
+          where: { id: log.id },
+          data: {
+            status: "FAILED",
+            response: `Error: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        });
+      }
     }
   }
 }
