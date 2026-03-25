@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, CheckCircle2, XCircle, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle2, XCircle, Search, Eye, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,10 +21,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { LogDetailView } from "@/components/log-detail-view";
 
 export default function LogsPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
   const pageSize = 15;
 
   const { data, isLoading } = useQuery({
@@ -33,7 +41,17 @@ export default function LogsPage() {
       const res = await fetch(`/api/logs?page=${page}&pageSize=${pageSize}&status=${statusFilter}`);
       return res.json();
     },
-    refetchInterval: 15000, // Refresh every 15s to see new logs
+    refetchInterval: 15000,
+  });
+
+  const { data: detailData, isLoading: isLoadingDetail } = useQuery({
+    queryKey: ["log-detail", selectedLogId],
+    queryFn: async () => {
+      if (!selectedLogId) return null;
+      const res = await fetch(`/api/logs/${selectedLogId}`);
+      return res.json();
+    },
+    enabled: !!selectedLogId,
   });
 
   const logs = data?.logs || [];
@@ -41,7 +59,7 @@ export default function LogsPage() {
 
   function handleFilterChange(val: string) {
     setStatusFilter(val);
-    setPage(1); // Reset to first page on filter change
+    setPage(1);
   }
 
   return (
@@ -63,6 +81,7 @@ export default function LogsPage() {
                 <SelectItem value="ALL">All Executions</SelectItem>
                 <SelectItem value="SUCCESS" className="text-emerald-400">Success Only</SelectItem>
                 <SelectItem value="FAILED" className="text-red-400">Failures Only</SelectItem>
+                <SelectItem value="RUNNING" className="text-blue-400">Running Only</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -80,18 +99,19 @@ export default function LogsPage() {
                 <TableHead className="w-[160px] text-slate-300">Cookie / Target</TableHead>
                 <TableHead className="w-[120px] text-slate-300">Action</TableHead>
                 <TableHead className="text-slate-300">Response / Error</TableHead>
+                <TableHead className="w-[100px] text-slate-300">Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow className="border-slate-800">
-                  <TableCell colSpan={6} className="h-[400px] text-center text-slate-500">
+                  <TableCell colSpan={7} className="h-[400px] text-center text-slate-500">
                     Loading execution logs...
                   </TableCell>
                 </TableRow>
               ) : logs.length === 0 ? (
                 <TableRow className="border-slate-800 hover:bg-slate-800/50">
-                  <TableCell colSpan={6} className="h-[400px] text-center text-slate-500">
+                  <TableCell colSpan={7} className="h-[400px] text-center text-slate-500">
                     No execution records found matching your criteria.
                   </TableCell>
                 </TableRow>
@@ -100,7 +120,7 @@ export default function LogsPage() {
                   <TableRow key={log.id} className="border-slate-800 hover:bg-slate-800/50 transition-colors">
                     <TableCell className="text-slate-400 text-sm whitespace-nowrap">
                       {new Date(log.executedAt).toLocaleString(undefined, {
-                        year: 'numeric', month: 'short', day: 'numeric', 
+                        year: 'numeric', month: 'short', day: 'numeric',
                         hour: '2-digit', minute: '2-digit', second: '2-digit'
                       })}
                     </TableCell>
@@ -108,6 +128,10 @@ export default function LogsPage() {
                       {log.status === "SUCCESS" ? (
                         <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 shadow-none border-0">
                           <CheckCircle2 className="w-3 h-3 mr-1" /> Success
+                        </Badge>
+                      ) : log.status === "RUNNING" ? (
+                        <Badge className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 shadow-none border-0">
+                          <CheckCircle2 className="w-3 h-3 mr-1 animate-pulse" /> Running
                         </Badge>
                       ) : (
                         <Badge className="bg-red-500/10 text-red-400 hover:bg-red-500/20 shadow-none border-0">
@@ -124,14 +148,23 @@ export default function LogsPage() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={`text-xs font-mono font-bold tracking-wider rounded px-2 py-1 ${
-                        log.actionType === 'LOGIN' ? 'bg-blue-500/10 text-blue-400' : 'bg-orange-500/10 text-orange-400'
-                      }`}>
+                      <span className={`text-xs font-mono font-bold tracking-wider rounded px-2 py-1 ${log.actionType === 'LOGIN' ? 'bg-blue-500/10 text-blue-400' : 'bg-orange-500/10 text-orange-400'
+                        }`}>
                         {log.actionType}
                       </span>
                     </TableCell>
                     <TableCell className="text-slate-400 text-sm max-w-[300px] truncate" title={log.response || ""}>
                       {log.response || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-slate-400 hover:text-slate-200"
+                        onClick={() => setSelectedLogId(log.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -140,7 +173,6 @@ export default function LogsPage() {
           </Table>
         </div>
 
-        {/* Pagination Controls */}
         <div className="border-t border-slate-800 bg-slate-950/30 p-4 flex items-center justify-between">
           <div className="text-sm text-slate-400">
             Showing <span className="font-medium text-slate-200">{logs.length}</span> records
@@ -171,6 +203,30 @@ export default function LogsPage() {
           </div>
         </div>
       </div>
+
+      {/* Log Detail Dialog */}
+      <Dialog open={!!selectedLogId} onOpenChange={() => setSelectedLogId(null)}>
+        <DialogContent className="!max-w-[90vw] !w-[90vw] max-h-[95vh] overflow-y-auto bg-slate-900 border-slate-800 text-slate-100">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Log Details</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-slate-400 hover:text-slate-200"
+                onClick={() => setSelectedLogId(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          {isLoadingDetail ? (
+            <div className="py-12 text-center text-slate-500">Loading detailed logs...</div>
+          ) : detailData ? (
+            <LogDetailView log={detailData} />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
