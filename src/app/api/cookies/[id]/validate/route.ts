@@ -18,7 +18,12 @@ export async function POST(
     return NextResponse.json({ error: "Cookie not found" }, { status: 404 });
   }
 
-  const result = await validateCookie(cookie.value);
+  const cookieValue = cookie.agentRouterCookie || cookie.githubCookie;
+  if (!cookieValue) {
+    return NextResponse.json({ error: "No cookie value found" }, { status: 400 });
+  }
+
+  const result = await validateCookie(cookieValue);
   const newStatus = result.isValid ? "ACTIVE" : "EXPIRED";
 
   await prisma.cookie.update({

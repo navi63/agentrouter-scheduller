@@ -10,15 +10,39 @@ export async function PUT(
 ) {
   const { id } = await params;
   const body = await req.json();
-  const { label, value, status } = body;
+  const { label, agentRouterEntries, githubEntries, status } = body;
+
+  const data: any = {};
+  if (label) data.label = label;
+  if (status) data.status = status;
+  
+  // Validate and process AgentRouter cookies
+  if (agentRouterEntries) {
+    const validEntries = agentRouterEntries.filter((e: { name: string; value: string }) => e.name && e.value);
+    if (validEntries.length > 0) {
+      data.agentRouterCookie = validEntries
+        .map((entry: { name: string; value: string }) => `${entry.name}=${entry.value}`)
+        .join('; ');
+    } else {
+      data.agentRouterCookie = null;
+    }
+  }
+
+  // Validate and process GitHub cookies
+  if (githubEntries) {
+    const validEntries = githubEntries.filter((e: { name: string; value: string }) => e.name && e.value);
+    if (validEntries.length > 0) {
+      data.githubCookie = validEntries
+        .map((entry: { name: string; value: string }) => `${entry.name}=${entry.value}`)
+        .join('; ');
+    } else {
+      data.githubCookie = null;
+    }
+  }
 
   const cookie = await prisma.cookie.update({
     where: { id: parseInt(id) },
-    data: {
-      ...(label && { label }),
-      ...(value && { value }),
-      ...(status && { status }),
-    },
+    data,
   });
   return NextResponse.json(cookie);
 }
