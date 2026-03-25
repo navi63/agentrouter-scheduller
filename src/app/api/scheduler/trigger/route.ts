@@ -43,11 +43,24 @@ export async function POST(req: Request) {
   }
 
   for (const action of actions) {
+    // Create log entry with RUNNING status
+    const log = await prisma.log.create({
+      data: {
+        scheduleId: schedule.id,
+        cookieId: schedule.cookie.id,
+        actionType: action,
+        status: "RUNNING",
+        response: "Execution in progress...",
+      },
+    });
+
     let result;
     if (action === "LOGIN") {
-      result = await executeLogin(schedule.cookie.value);
+      const cookieValue = schedule.cookie.agentRouterCookie || schedule.cookie.githubCookie || "";
+      result = await executeLogin(cookieValue, schedule.cookie.id, prisma, log.id);
     } else {
-      result = await executeLogout(schedule.cookie.value);
+      const cookieValue = schedule.cookie.agentRouterCookie || schedule.cookie.githubCookie || "";
+      result = await executeLogout(cookieValue, prisma, log.id);
     }
 
     // Update cookie status based on result
@@ -56,12 +69,10 @@ export async function POST(req: Request) {
       data: { status: result.success ? "ACTIVE" : "EXPIRED" },
     });
 
-    // Create log entry
-    await prisma.log.create({
+    // Update log entry with final status
+    await prisma.log.update({
+      where: { id: log.id },
       data: {
-        scheduleId: schedule.id,
-        cookieId: schedule.cookie.id,
-        actionType: action,
         status: result.success ? "SUCCESS" : "FAILED",
         response: result.message,
       },
