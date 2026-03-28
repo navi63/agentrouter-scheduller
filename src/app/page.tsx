@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Cookie, CalendarClock, Activity, AlertCircle, Clock, ScrollText } from "lucide-react";
+import { Cookie, CalendarClock, Activity, AlertCircle, Clock, ScrollText, ArrowUp } from "lucide-react";
 
 export default function Dashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -44,7 +44,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <Card className="bg-slate-800/80 border-slate-700 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-300">Active Cookies</CardTitle>
@@ -86,6 +86,17 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-3xl font-bold text-white">{stats?.failedCount || 0}</div>
             <p className="text-xs text-slate-400 mt-1">Requires attention</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800/80 border-slate-700 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-slate-300">Total Redeemed</CardTitle>
+            <ArrowUp className="h-4 w-4 text-emerald-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-white">${stats?.totalRedeemed?.toFixed(2) || '0.00'}</div>
+            <p className="text-xs text-slate-400 mt-1">All time balance increases</p>
           </CardContent>
         </Card>
       </div>

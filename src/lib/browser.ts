@@ -376,7 +376,11 @@ export async function executeLoginWithBrowser(
 
     // Save or update account data in database
     if (balanceData.currentBalance || balanceData.consumption) {
-      await prisma.accountData.upsert({
+      const previousAccountData = await prisma.accountData.findUnique({
+        where: { cookieId },
+      });
+
+      const upsertResult = await prisma.accountData.upsert({
         where: { cookieId },
         create: {
           cookieId,
@@ -388,6 +392,41 @@ export async function executeLoginWithBrowser(
           consumption: balanceData.consumption,
         },
       });
+
+      // Check if balance increased and create redemption log
+      if (previousAccountData?.currentBalance && balanceData.currentBalance) {
+        const prevBalance = parseFloat(previousAccountData.currentBalance.replace(/[$,]/g, ''));
+        const newBalance = parseFloat(balanceData.currentBalance.replace(/[$,]/g, ''));
+
+        if (newBalance > prevBalance) {
+          const nominal = (newBalance - prevBalance).toFixed(2);
+          const auditableData = JSON.stringify({
+            previousConsumption: previousAccountData.consumption,
+            newConsumption: balanceData.consumption,
+            scrapedAt: new Date().toISOString(),
+          });
+
+          await prisma.redemptionLog.create({
+            data: {
+              accountDataId: upsertResult.id,
+              cookieId,
+              nominal: `$${nominal}`,
+              auditableData,
+              previousBalance: previousAccountData.currentBalance,
+              newBalance: balanceData.currentBalance,
+            },
+          });
+
+          await logStep(
+            prisma,
+            logId,
+            "Redemption Logged",
+            "INFO",
+            `Balance increased by $${nominal} from ${previousAccountData.currentBalance} to ${balanceData.currentBalance}`
+          );
+        }
+      }
+
       await logStep(prisma, logId, "Account Data Saved", "INFO", "Balance and consumption saved to database");
     }
 

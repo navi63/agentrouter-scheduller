@@ -7,16 +7,17 @@ datasource db {
 }
 
 model Cookie {
-  id                Int         @id @default(autoincrement())
-  label             String      @unique
-  agentRouterCookie String?     // Cookie for agentrouter.org domain
-  githubCookie      String?     // Cookie for github.com domain
-  status            String      @default("UNKNOWN") // ACTIVE, EXPIRED, UNKNOWN
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  id                Int             @id @default(autoincrement())
+  label             String          @unique
+  agentRouterCookie String?         // Cookie for agentrouter.org domain
+  githubCookie      String?         // Cookie for github.com domain
+  status            String          @default("UNKNOWN") // ACTIVE, EXPIRED, UNKNOWN
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
   schedules         Schedule[]
   logs              Log[]
   accountData       AccountData?
+  redemptionLogs    RedemptionLog[]
 }
 
 model Schedule {
@@ -58,11 +59,25 @@ model LogEntry {
 }
 
 model AccountData {
-  id              Int      @id @default(autoincrement())
-  cookieId        Int      @unique
-  cookie          Cookie   @relation(fields: [cookieId], references: [id], onDelete: Cascade)
+  id              Int            @id @default(autoincrement())
+  cookieId        Int            @unique
+  cookie          Cookie         @relation(fields: [cookieId], references: [id], onDelete: Cascade)
   currentBalance  String?
   consumption     String?
-  lastUpdated     DateTime @updatedAt
-  createdAt       DateTime @default(now())
+  lastUpdated     DateTime       @updatedAt
+  createdAt       DateTime       @default(now())
+  redemptionLogs  RedemptionLog[]
+}
+
+model RedemptionLog {
+  id              Int         @id @default(autoincrement())
+  accountDataId   Int
+  accountData     AccountData @relation(fields: [accountDataId], references: [id], onDelete: Cascade)
+  cookieId        Int
+  cookie          Cookie      @relation(fields: [cookieId], references: [id], onDelete: Cascade)
+  nominal         String
+  auditableData   String
+  previousBalance String
+  newBalance      String
+  createdAt       DateTime    @default(now())
 }
