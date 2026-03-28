@@ -249,10 +249,11 @@ async function getAuthorizationUrl(
 
 /**
  * Execute a login action using the stored cookie
- * This follows the full OAuth flow to refresh credentials and check-in
+ * This uses a headless browser to perform the OAuth flow
  */
 export async function executeLogin(
-  cookieValue: string,
+  agentRouterCookie: string,
+  githubCookie: string,
   cookieId: number,
   prisma: any,
   logId: number
@@ -261,192 +262,25 @@ export async function executeLogin(
   message: string;
   data?: Record<string, unknown>;
 }> {
-  try {
-    // Step 1: Get OAuth state
-    await logStep(prisma, logId, "Starting Login", "INFO", "Initiating OAuth flow to refresh session");
-
-    const { state, sessionCookie } = await getOAuthState(cookieValue, prisma, logId);
-    await logStep(
-      prisma,
-      logId,
-      "OAuth State Retrieved",
-      "INFO",
-      "Successfully retrieved OAuth state token",
-      { state }
-    );
-
-    // Step 2: Call authorize endpoint to get GitHub OAuth URL
-    await logStep(
-      prisma,
-      logId,
-      "Getting Authorization URL",
-      "INFO",
-      "Retrieving GitHub OAuth authorization URL"
-    );
-
-    const authorizeData = await getAuthorizationUrl(cookieId, prisma, logId);
-
-    await logStep(
-      prisma,
-      logId,
-      "Authorization URL Retrieved",
-      "INFO",
-      `Got GitHub OAuth URL: ${authorizeData.location || authorizeData.authorize_url}`,
-      { url: authorizeData.location || authorizeData.authorize_url }
-    );
-
-    // Step 3: We simulate the GitHub OAuth redirect by directly calling api/oauth/github
-    // In automated flow, we would need the actual callback code from GitHub
-    // For now, we continue with the existing completeOAuth flow
-    await logStep(
-      prisma,
-      logId,
-      "OAuth Callback",
-      "INFO",
-      "Processing OAuth callback to establish session"
-    );
-
-    const { userData, sessionCookie: finalCookie } = await completeOAuth(
-      authorizeData.sessionCookie || sessionCookie,
-      "4b0fdc873c61f451cc01", // In real flow, this comes from GitHub callback
-      state,
-      prisma,
-      logId
-    );
-
-    await logStep(
-      prisma,
-      logId,
-      "OAuth Complete",
-      "INFO",
-      "OAuth callback completed successfully",
-      { userData }
-    );
-
-    // Step 4: Verify the session
-    await logStep(
-      prisma,
-      logId,
-      "Session Verification",
-      "INFO",
-      "Verifying active session"
-    );
-
-    const selfData = await getUserSelf(finalCookie, prisma, logId);
-
-    if (selfData.success) {
-      await logStep(
-        prisma,
-        logId,
-        "Login Success",
-        "INFO",
-        `Login successful for user: ${(selfData.data as Record<string, unknown>)?.display_name || "Unknown"}`,
-        {
-          quota: (selfData.data as Record<string, unknown>)?.quota,
-          display_name: (selfData.data as Record<string, unknown>)?.display_name,
-        }
-      );
-    } else {
-      await logStep(
-        prisma,
-        logId,
-        "Login Failed",
-        "ERROR",
-        `Login verification failed: ${selfData.message}`
-      );
-    }
-
-    return {
-      success: selfData.success,
-      message: selfData.success
-        ? `Login successful. User: ${(selfData.data as Record<string, unknown>)?.display_name || "Unknown"}, Quota: ${(selfData.data as Record<string, unknown>)?.quota || 0}`
-        : `Login failed: ${selfData.message}`,
-      data: { ...selfData.data as Record<string, unknown>, userData },
-    };
-  } catch (error) {
-    await logStep(
-      prisma,
-      logId,
-      "Login Error",
-      "ERROR",
-      `Login error occurred: ${error instanceof Error ? error.message : String(error)}`,
-      { error: error instanceof Error ? error.message : String(error) }
-    );
-
-    return {
-      success: false,
-      message: `Login error: ${error instanceof Error ? error.message : String(error)}`,
-    };
-  }
+  const { executeLoginWithBrowser } = await import("./browser");
+  return executeLoginWithBrowser(agentRouterCookie, githubCookie, cookieId, prisma, logId);
 }
 
 /**
- * Execute a logout action - simply verify and invalidate the session
+ * Execute a logout action - verify session and close
+ * This uses a headless browser to perform the logout
  */
 export async function executeLogout(
-  cookieValue: string,
+  agentRouterCookie: string,
+  githubCookie: string,
   prisma: any,
   logId: number
 ): Promise<{
   success: boolean;
   message: string;
 }> {
-  try {
-    await logStep(prisma, logId, "Starting Logout", "INFO", "Initiating logout process");
-
-    // For logout, we verify the cookie is still active first
-    await logStep(
-      prisma,
-      logId,
-      "Session Verification",
-      "INFO",
-      "Verifying session before logout"
-    );
-
-    const selfData = await getUserSelf(cookieValue, prisma, logId);
-
-    if (selfData.success) {
-      await logStep(
-        prisma,
-        logId,
-        "Logout Success",
-        "INFO",
-        `Session verified and logged out for user: ${(selfData.data as Record<string, unknown>)?.display_name || "Unknown"}`,
-        {
-          display_name: (selfData.data as Record<string, unknown>)?.display_name,
-        }
-      );
-    } else {
-      await logStep(
-        prisma,
-        logId,
-        "Session Invalid",
-        "WARN",
-        "Session already expired or invalid"
-      );
-    }
-
-    return {
-      success: true,
-      message: selfData.success
-        ? `Session verified and logged out. User: ${(selfData.data as Record<string, unknown>)?.display_name || "Unknown"}`
-        : "Session already expired or invalid",
-    };
-  } catch (error) {
-    await logStep(
-      prisma,
-      logId,
-      "Logout Error",
-      "ERROR",
-      `Logout error occurred: ${error instanceof Error ? error.message : String(error)}`,
-      { error: error instanceof Error ? error.message : String(error) }
-    );
-
-    return {
-      success: false,
-      message: `Logout error: ${error instanceof Error ? error.message : String(error)}`,
-    };
-  }
+  const { executeLogoutWithBrowser } = await import("./browser");
+  return executeLogoutWithBrowser(agentRouterCookie, githubCookie, prisma, logId);
 }
 
 /**

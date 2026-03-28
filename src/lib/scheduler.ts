@@ -55,11 +55,13 @@ async function executeScheduleAction(scheduleId: number) {
 
       let result;
       if (action === "LOGIN") {
-        const cookieValue = schedule.cookie.agentRouterCookie || schedule.cookie.githubCookie || "";
-        result = await executeLogin(cookieValue, schedule.cookie.id, prisma, log.id);
+        const agentRouterCookie = schedule.cookie.agentRouterCookie || "";
+        const githubCookie = schedule.cookie.githubCookie || "";
+        result = await executeLogin(agentRouterCookie, githubCookie, schedule.cookie.id, prisma, log.id);
       } else {
-        const cookieValue = schedule.cookie.agentRouterCookie || schedule.cookie.githubCookie || "";
-        result = await executeLogout(cookieValue, prisma, log.id);
+        const agentRouterCookie = schedule.cookie.agentRouterCookie || "";
+        const githubCookie = schedule.cookie.githubCookie || "";
+        result = await executeLogout(agentRouterCookie, githubCookie, prisma, log.id);
       }
 
       // Update cookie status
