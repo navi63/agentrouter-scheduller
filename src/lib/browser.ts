@@ -374,6 +374,23 @@ export async function executeLoginWithBrowser(
     await logStep(prisma, logId, "Data Scraped", "INFO", "Balance and consumption data retrieved", balanceData);
     logConsole("Balance data scraped", balanceData);
 
+    // Save or update account data in database
+    if (balanceData.currentBalance || balanceData.consumption) {
+      await prisma.accountData.upsert({
+        where: { cookieId },
+        create: {
+          cookieId,
+          currentBalance: balanceData.currentBalance,
+          consumption: balanceData.consumption,
+        },
+        update: {
+          currentBalance: balanceData.currentBalance,
+          consumption: balanceData.consumption,
+        },
+      });
+      await logStep(prisma, logId, "Account Data Saved", "INFO", "Balance and consumption saved to database");
+    }
+
     // Debug pause
     await pauseForDebugging();
 

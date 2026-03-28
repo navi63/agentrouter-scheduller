@@ -36,6 +36,23 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge className="bg-slate-500/10 text-slate-400 hover:bg-slate-500/20"><HelpCircle className="w-3 h-3 mr-1" /> Unknown</Badge>;
 }
 
+function AccountDataDisplay({ accountData }: { accountData: any }) {
+  if (!accountData) return <span className="text-slate-500 text-sm">-</span>;
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-slate-400">Balance:</span>
+        <span className="font-medium text-slate-200">{accountData.currentBalance || '-'}</span>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-slate-400">Used:</span>
+        <span className="font-medium text-slate-200">{accountData.consumption || '-'}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function CookiesPage() {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -329,6 +346,7 @@ export default function CookiesPage() {
           <TableHeader className="bg-slate-950/50">
             <TableRow className="border-slate-800 hover:bg-transparent">
               <TableHead className="w-[150px] text-slate-300">Label</TableHead>
+              <TableHead className="text-slate-300">Account Data</TableHead>
               <TableHead className="text-slate-300">AgentRouter Cookies</TableHead>
               <TableHead className="text-slate-300">GitHub Cookies</TableHead>
               <TableHead className="w-[120px] text-slate-300 rounded-lg">Status</TableHead>
@@ -338,13 +356,13 @@ export default function CookiesPage() {
           <TableBody>
             {isLoading ? (
               <TableRow className="border-slate-800">
-                <TableCell colSpan={5} className="h-24 text-center text-slate-500">
+                <TableCell colSpan={6} className="h-24 text-center text-slate-500">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : cookies.length === 0 ? (
               <TableRow className="border-slate-800 hover:bg-slate-800/50">
-                <TableCell colSpan={5} className="h-24 text-center text-slate-500">
+                <TableCell colSpan={6} className="h-24 text-center text-slate-500">
                   No cookies found. Add your first set of credentials.
                 </TableCell>
               </TableRow>
@@ -352,6 +370,9 @@ export default function CookiesPage() {
               cookies.map((cookie: any) => (
                 <TableRow key={cookie.id} className="border-slate-800 hover:bg-slate-800/50 transition-colors">
                   <TableCell className="font-medium text-slate-200">{cookie.label}</TableCell>
+                  <TableCell>
+                    <AccountDataDisplay accountData={cookie.accountData} />
+                  </TableCell>
                   <TableCell className="font-mono text-xs text-slate-400 truncate max-w-xs">
                     {cookie.agentRouterCookie ? cookie.agentRouterCookie.substring(0, 50) + "..." : "-"}
                   </TableCell>

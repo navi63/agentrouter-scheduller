@@ -7,15 +7,16 @@ datasource db {
 }
 
 model Cookie {
-  id                Int      @id @default(autoincrement())
-  label             String
-  agentRouterCookie String?  // Cookie for agentrouter.org domain
-  githubCookie      String?  // Cookie for github.com domain
-  status            String   @default("UNKNOWN") // ACTIVE, EXPIRED, UNKNOWN
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                Int         @id @default(autoincrement())
+  label             String      @unique
+  agentRouterCookie String?     // Cookie for agentrouter.org domain
+  githubCookie      String?     // Cookie for github.com domain
+  status            String      @default("UNKNOWN") // ACTIVE, EXPIRED, UNKNOWN
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
   schedules         Schedule[]
   logs              Log[]
+  accountData       AccountData?
 }
 
 model Schedule {
@@ -54,4 +55,14 @@ model LogEntry {
   message   String   // Detailed message of the step
   metadata  String?  // JSON string for additional data (request/response body, headers, etc.)
   timestamp DateTime @default(now())
+}
+
+model AccountData {
+  id              Int      @id @default(autoincrement())
+  cookieId        Int      @unique
+  cookie          Cookie   @relation(fields: [cookieId], references: [id], onDelete: Cascade)
+  currentBalance  String?
+  consumption     String?
+  lastUpdated     DateTime @updatedAt
+  createdAt       DateTime @default(now())
 }

@@ -9,6 +9,7 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { schedules: true } },
+      accountData: true,
     },
   });
   return NextResponse.json(cookies);
