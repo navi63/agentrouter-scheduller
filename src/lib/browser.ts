@@ -453,8 +453,11 @@ export async function executeLoginWithBrowser(
       message: `Login error: ${errorMsg}`,
     };
   } finally {
-    // Browser stays open for debugging
-    logConsole("Execution completed (browser remains open)");
+    if (browser) {
+      await browser.close();
+      await logStep(prisma, logId, "Browser Closed", "INFO", "Browser closed successfully");
+      logConsole("Browser closed");
+    }
   }
 }
 
