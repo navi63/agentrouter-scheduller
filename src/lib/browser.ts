@@ -196,10 +196,27 @@ async function getAllButtons(page: Page): Promise<ButtonInfo[]> {
   });
 }
 
+async function waitForNewPage(
+  browser: Browser,
+  currentPages: number,
+  timeout: number = 30000
+): Promise<Page> {
+  const startTime = Date.now();
+  while (Date.now() - startTime < timeout) {
+    const pages = await browser.pages();
+    if (pages.length > currentPages) {
+      return pages[pages.length - 1];
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  throw new Error("Timeout waiting for new page to open");
+}
+
 async function clickButtonByIndex(
   page: Page,
   index: number,
-  description: string
+  description: string,
+  waitForNav: boolean = true
 ): Promise<void> {
   logConsole(`Clicking button: ${description}`, `index=${index}`);
 
@@ -211,12 +228,13 @@ async function clickButtonByIndex(
   await buttons[index].click();
   logConsole(`Button clicked successfully: ${description}`);
 
-  await page.waitForNavigation({
-    waitUntil: "networkidle2",
-    timeout: CONFIG.TIMEOUTS.BUTTON_CLICK_NAVIGATION,
-  });
-
-  logConsole("Navigation completed after button click");
+  if (waitForNav) {
+    await page.waitForNavigation({
+      waitUntil: "networkidle2",
+      timeout: CONFIG.TIMEOUTS.BUTTON_CLICK_NAVIGATION,
+    });
+    logConsole("Navigation completed after button click");
+  }
 }
 
 // ============================================================================
@@ -295,24 +313,79 @@ export async function executeLoginWithBrowser(
     // Debug: log page info
     await logPageInfo(page, prisma, logId);
 
-    // Click GitHub login button
+    // Get current page count before clicking
+    const initialPageCount = (await browser.pages()).length;
+
+    // Click GitHub login button (opens new tab, so don't wait for navigation)
     await logStep(prisma, logId, "Clicking GitHub Button", "INFO", `Clicking button: ${CONFIG.BUTTON_TEXT}`);
-    await clickButtonByIndex(page, CONFIG.BUTTON_INDEX, CONFIG.BUTTON_TEXT);
+    await clickButtonByIndex(page, CONFIG.BUTTON_INDEX, CONFIG.BUTTON_TEXT, false);
     await logStep(prisma, logId, "GitHub Button Clicked", "INFO", "GitHub button clicked");
 
-    // Navigate to console page
-    await logStep(prisma, logId, "Navigating", "INFO", "Going to console page");
-    await navigateTo(page, "/console", "Console page");
-    await logStep(prisma, logId, "Console Page Loaded", "INFO", "Console page ready");
+    // Wait for GitHub OAuth page to open in new tab
+    logConsole("Waiting for GitHub OAuth page to open...");
+    const githubPage = await waitForNewPage(browser, initialPageCount);
+    logConsole("GitHub OAuth page opened in new tab");
+
+    // Wait 2 seconds for OAuth flow to complete
+    await waitFor(2000);
+    await logStep(prisma, logId, "Delay", "INFO", "Waited 2 seconds after GitHub OAuth opened");
+
+    // Close the GitHub OAuth tab
+    await githubPage.close();
+    await logStep(prisma, logId, "GitHub Tab Closed", "INFO", "Closed GitHub OAuth tab");
+
+    // Create new tab and navigate to console page
+    const newPage = await browser.newPage();
+    await setupPage(newPage);
+
+    // Copy cookies from original page to new page
+    const cookies = await page.cookies();
+    await newPage.setCookie(...cookies);
+    await logStep(prisma, logId, "Cookies Copied", "INFO", "Cookies copied to new tab");
+
+    // Navigate to console in new tab
+    await logStep(prisma, logId, "Navigating", "INFO", "Going to console page in new tab");
+    await navigateTo(newPage, "/console", "Console page");
+    await logStep(prisma, logId, "Console Page Loaded", "INFO", "Console page ready in new tab");
+
+    // Scrape balance and consumption data
+    const balanceData = await newPage.evaluate(() => {
+      const getText = (label: string): string | null => {
+        const elements = Array.from(document.querySelectorAll('*'));
+        for (const el of elements) {
+          if (el.textContent?.includes(label)) {
+            const parent = el.parentElement;
+            if (parent) {
+              const valueText = parent.textContent?.replace(label, '').trim() || '';
+              const match = valueText.match(/\$[\d,]+\.?\d*/);
+              return match ? match[0] : null;
+            }
+          }
+        }
+        return null;
+      };
+
+      return {
+        currentBalance: getText('Current balance'),
+        consumption: getText('Consumption'),
+      };
+    });
+
+    await logStep(prisma, logId, "Data Scraped", "INFO", "Balance and consumption data retrieved", balanceData);
+    logConsole("Balance data scraped", balanceData);
 
     // Debug pause
     await pauseForDebugging();
 
-    const buttonsInfo = await getAllButtons(page);
+    const buttonsInfo = await getAllButtons(newPage);
     return {
       success: true,
       message: "Login flow completed successfully",
-      data: { buttonsCount: buttonsInfo.length },
+      data: {
+        buttonsCount: buttonsInfo.length,
+        balance: balanceData.currentBalance,
+        consumption: balanceData.consumption,
+      },
     };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
