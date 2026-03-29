@@ -2,7 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'agentrouter-scheduler',
-      script: './server.js',
+      script: 'npm',
+      args: 'run start',
       instances: 'max',
       exec_mode: 'cluster',
       autorestart: true,
