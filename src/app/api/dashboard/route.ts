@@ -26,7 +26,7 @@ export async function GET() {
     ]);
 
   const redemptionLogs = await prisma.redemptionLog.findMany();
-  const totalRedeemed = redemptionLogs.reduce((sum: number, log) => sum + parseFloat(log.nominal.replace(/[$,]/g, '')), 0);
+  const totalRedeemed = redemptionLogs.reduce((sum: number, log: { nominal: string }) => sum + parseFloat(log.nominal.replace(/[$,]/g, '')), 0);
 
   const successCount = stats.find((s: { status: string; _count: { status: number } }) => s.status === "SUCCESS")?._count?.status || 0;
   const failedCount = stats.find((s: { status: string; _count: { status: number } }) => s.status === "FAILED")?._count?.status || 0;
