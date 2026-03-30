@@ -37,62 +37,118 @@ async function executeScheduleAction(scheduleId: number) {
 
   for (const action of actions) {
     let log: any = null;
-    try {
-      // Create log entry with RUNNING status
-      log = await prisma.log.create({
-        data: {
-          scheduleId: schedule.id,
-          cookieId: schedule.cookie.id,
-          actionType: action,
-          status: "RUNNING",
-          response: "Execution in progress...",
-        },
-      });
+    const maxRetries = 3;
+    let retryCount = 0;
+    let success = false;
 
-      console.log(
-        `[Scheduler] Started ${action} for ${schedule.cookie.label} (Log ID: ${log.id})`
-      );
+    while (retryCount < maxRetries && !success) {
+      try {
+        // Create log entry with RUNNING status
+        if (!log) {
+          log = await prisma.log.create({
+            data: {
+              scheduleId: schedule.id,
+              cookieId: schedule.cookie.id,
+              actionType: action,
+              status: "RUNNING",
+              response: "Execution in progress...",
+            },
+          });
+        }
 
-      let result;
-      if (action === "LOGIN") {
-        const agentRouterCookie = schedule.cookie.agentRouterCookie || "";
-        const githubCookie = schedule.cookie.githubCookie || "";
-        result = await executeLogin(agentRouterCookie, githubCookie, schedule.cookie.id, prisma, log.id);
-      } else {
-        const agentRouterCookie = schedule.cookie.agentRouterCookie || "";
-        const githubCookie = schedule.cookie.githubCookie || "";
-        result = await executeLogout(agentRouterCookie, githubCookie, prisma, log.id);
-      }
+        console.log(
+          `[Scheduler] Started ${action} for ${schedule.cookie.label} (Log ID: ${log.id})${retryCount > 0 ? ` (Attempt ${retryCount + 1}/${maxRetries})` : ""}`
+        );
 
-      // Update cookie status
-      await prisma.cookie.update({
-        where: { id: schedule.cookie.id },
-        data: { status: result.success ? "ACTIVE" : "EXPIRED" },
-      });
+        let result;
+        if (action === "LOGIN") {
+          const agentRouterCookie = schedule.cookie.agentRouterCookie || "";
+          const githubCookie = schedule.cookie.githubCookie || "";
+          result = await executeLogin(agentRouterCookie, githubCookie, schedule.cookie.id, prisma, log.id);
+        } else {
+          const agentRouterCookie = schedule.cookie.agentRouterCookie || "";
+          const githubCookie = schedule.cookie.githubCookie || "";
+          result = await executeLogout(agentRouterCookie, githubCookie, prisma, log.id);
+        }
 
-      // Update log entry with final status
-      await prisma.log.update({
-        where: { id: log.id },
-        data: {
-          status: result.success ? "SUCCESS" : "FAILED",
-          response: result.message,
-        },
-      });
+        if (result.success) {
+          // Update cookie status
+          await prisma.cookie.update({
+            where: { id: schedule.cookie.id },
+            data: { status: "ACTIVE" },
+          });
 
-      console.log(
-        `[Scheduler] ${action} for ${schedule.cookie.label}: ${result.success ? "SUCCESS" : "FAILED"} - ${result.message}`
-      );
-    } catch (error) {
-      console.error(`[Scheduler] Error executing ${action}:`, error);
-      // Update log entry with FAILED status
-      if (log) {
-        await prisma.log.update({
-          where: { id: log.id },
-          data: {
-            status: "FAILED",
-            response: `Error: ${error instanceof Error ? error.message : String(error)}`,
-          },
-        });
+          // Update log entry with final status
+          await prisma.log.update({
+            where: { id: log.id },
+            data: {
+              status: "SUCCESS",
+              response: result.message,
+            },
+          });
+
+          success = true;
+          console.log(
+            `[Scheduler] ${action} for ${schedule.cookie.label}: SUCCESS - ${result.message}`
+          );
+        } else {
+          retryCount++;
+
+          if (retryCount < maxRetries) {
+            console.log(
+              `[Scheduler] ${action} for ${schedule.cookie.label} failed (Attempt ${retryCount}/${maxRetries}): ${result.message}. Retrying...`
+            );
+            // Wait before retry (2 seconds)
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          } else {
+            // All retries exhausted
+            await prisma.cookie.update({
+              where: { id: schedule.cookie.id },
+              data: { status: "EXPIRED" },
+            });
+
+            await prisma.log.update({
+              where: { id: log.id },
+              data: {
+                status: "FAILED",
+                response: `Failed after ${maxRetries} attempts: ${result.message}`,
+              },
+            });
+
+            console.log(
+              `[Scheduler] ${action} for ${schedule.cookie.label}: FAILED after ${maxRetries} attempts - ${result.message}`
+            );
+          }
+        }
+      } catch (error) {
+        retryCount++;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        console.error(`[Scheduler] Error executing ${action} (Attempt ${retryCount}/${maxRetries}):`, error);
+
+        if (retryCount < maxRetries) {
+          console.log(
+            `[Scheduler] ${action} for ${schedule.cookie.label} encountered an error. Retrying...`
+          );
+          // Wait before retry (2 seconds)
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } else {
+          // All retries exhausted
+          if (log) {
+            await prisma.cookie.update({
+              where: { id: schedule.cookie.id },
+              data: { status: "EXPIRED" },
+            });
+
+            await prisma.log.update({
+              where: { id: log.id },
+              data: {
+                status: "FAILED",
+                response: `Failed after ${maxRetries} attempts: ${errorMessage}`,
+              },
+            });
+          }
+        }
       }
     }
   }
