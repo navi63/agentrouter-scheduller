@@ -13,6 +13,15 @@ function timeToCron(time: string): string {
 }
 
 /**
+ * Detect if a time string is in cron format or HH:mm format
+ */
+function isCronExpression(time: string): boolean {
+  // Cron format has 5 parts separated by spaces
+  const cronPattern = /^[0-9\-\*\/,]+\s+[0-9\-\*\/,]+\s+[0-9\-\*\/,]+\s+[0-9\-\*\/,]+\s+[0-9\-\*\/,]+$/;
+  return cronPattern.test(time);
+}
+
+/**
  * Execute a schedule's action(s)
  */
 async function executeScheduleAction(scheduleId: number) {
@@ -161,7 +170,8 @@ export function registerSchedule(scheduleId: number, time: string) {
   // Remove existing job if any
   unregisterSchedule(scheduleId);
 
-  const cronExpression = timeToCron(time);
+  // Check if time is already in cron format or needs conversion from HH:mm
+  const cronExpression = isCronExpression(time) ? time : timeToCron(time);
   const task = cron.schedule(cronExpression, () => {
     executeScheduleAction(scheduleId);
   });

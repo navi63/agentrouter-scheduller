@@ -43,6 +43,8 @@ export default function SchedulerPage() {
   const [name, setName] = useState("");
   const [cookieId, setCookieId] = useState("");
   const [time, setTime] = useState("");
+  const [cronExpression, setCronExpression] = useState("");
+  const [timeMode, setTimeMode] = useState<"time" | "cron">("time");
   const [type, setType] = useState("");
 
   const { data: schedules = [], isLoading: schedLoading } = useQuery({
@@ -156,10 +158,14 @@ export default function SchedulerPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const scheduleData = editingId
+      ? { id: editingId, name, cookieId, type, time: timeMode === "time" ? time : cronExpression }
+      : { name, cookieId, type, time: timeMode === "time" ? time : cronExpression };
+
     if (editingId) {
-      updateMutation.mutate({ id: editingId, name, cookieId, time, type });
+      updateMutation.mutate(scheduleData);
     } else {
-      createMutation.mutate({ name, cookieId, time, type });
+      createMutation.mutate(scheduleData);
     }
   }
 
@@ -167,8 +173,20 @@ export default function SchedulerPage() {
     setEditingId(sched.id);
     setName(sched.name);
     setCookieId(sched.cookieId.toString());
-    setTime(sched.time);
     setType(sched.type);
+
+    // Detect if time is in cron format or HH:mm format
+    const cronPattern = /^[0-9\-\*\/,]+\s+[0-9\-\*\/,]+\s+[0-9\-\*\/,]+\s+[0-9\-\*\/,]+\s+[0-9\-\*\/,]+$/;
+    if (cronPattern.test(sched.time)) {
+      setTimeMode("cron");
+      setCronExpression(sched.time);
+      setTime("");
+    } else {
+      setTimeMode("time");
+      setTime(sched.time);
+      setCronExpression("");
+    }
+
     setIsDialogOpen(true);
   }
 
@@ -178,6 +196,8 @@ export default function SchedulerPage() {
     setName("");
     setCookieId("");
     setTime("");
+    setCronExpression("");
+    setTimeMode("time");
     setType("");
   }
 
@@ -222,7 +242,19 @@ export default function SchedulerPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="timeMode">Time Format</Label>
+                <Select value={timeMode} onValueChange={(val) => val && setTimeMode(val as "time" | "cron")}>
+                  <SelectTrigger className="bg-slate-950 border-slate-800">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                    <SelectItem value="time">Simple Time (HH:mm)</SelectItem>
+                    <SelectItem value="cron">Cron Expression</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {timeMode === "time" ? (
                 <div className="space-y-2">
                   <Label htmlFor="time">Time (HH:mm)</Label>
                   <Input
@@ -234,6 +266,24 @@ export default function SchedulerPage() {
                     required
                   />
                 </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="cronExpression">Cron Expression</Label>
+                  <Input
+                    id="cronExpression"
+                    type="text"
+                    placeholder="e.g., */5 * * * * (every 5 minutes)"
+                    value={cronExpression}
+                    onChange={(e) => setCronExpression(e.target.value)}
+                    className="bg-slate-950 border-slate-800 font-mono text-sm"
+                    required
+                  />
+                  <p className="text-xs text-slate-500">
+                    Format: minute hour day month weekday (e.g., 0 9 * * * for 9:00 AM daily)
+                  </p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="type">Action Type</Label>
                   <Select value={type} onValueChange={(val) => setType(val || "")} required>
