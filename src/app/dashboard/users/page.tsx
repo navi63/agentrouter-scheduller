@@ -1,13 +1,20 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Edit2, Mail, CheckCircle, XCircle, Calendar, Shield } from "lucide-react";
+import { Trash2, Edit2, Mail, CheckCircle, XCircle, Calendar, Shield, Crown } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -31,6 +38,7 @@ export default function UsersPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
   const [userName, setUserName] = useState("");
+  const [userRole, setUserRole] = useState("USER");
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
@@ -42,11 +50,11 @@ export default function UsersPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+    mutationFn: async ({ id, name, role }: { id: string; name: string; role: string }) => {
       const res = await fetch(`/api/users/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, role }),
       });
       if (!res.ok) {
         const error = await res.json();
@@ -81,13 +89,14 @@ export default function UsersPage() {
   function handleEditUser(user: any) {
     setEditingUser(user);
     setUserName(user.name || "");
+    setUserRole(user.role || "USER");
     setIsDialogOpen(true);
   }
 
   function handleUpdateUser(e: React.FormEvent) {
     e.preventDefault();
     if (editingUser) {
-      updateMutation.mutate({ id: editingUser.id, name: userName });
+      updateMutation.mutate({ id: editingUser.id, name: userName, role: userRole });
     }
   }
 
@@ -101,6 +110,7 @@ export default function UsersPage() {
     setIsDialogOpen(false);
     setEditingUser(null);
     setUserName("");
+    setUserRole("USER");
   }
 
   const formatDate = (date: string | Date) => {
@@ -124,6 +134,7 @@ export default function UsersPage() {
             <TableRow className="border-slate-800 hover:bg-transparent">
               <TableHead className="text-slate-300">User</TableHead>
               <TableHead className="text-slate-300">Email</TableHead>
+              <TableHead className="text-slate-300">Role</TableHead>
               <TableHead className="text-slate-300">Email Verified</TableHead>
               <TableHead className="text-slate-300">Sessions</TableHead>
               <TableHead className="text-slate-300">Accounts</TableHead>
@@ -134,13 +145,13 @@ export default function UsersPage() {
           <TableBody>
             {isLoading ? (
               <TableRow className="border-slate-800">
-                <TableCell colSpan={7} className="h-24 text-center text-slate-500">
+                <TableCell colSpan={8} className="h-24 text-center text-slate-500">
                   Loading users...
                 </TableCell>
               </TableRow>
             ) : users.length === 0 ? (
               <TableRow className="border-slate-800 hover:bg-slate-800/50">
-                <TableCell colSpan={7} className="h-24 text-center text-slate-500">
+                <TableCell colSpan={8} className="h-24 text-center text-slate-500">
                   No users found.
                 </TableCell>
               </TableRow>
@@ -150,7 +161,11 @@ export default function UsersPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                        <Shield className="h-5 w-5 text-emerald-500" />
+                        {user.role === "SUPER_ADMIN" ? (
+                          <Crown className="h-5 w-5 text-amber-500" />
+                        ) : (
+                          <Shield className="h-5 w-5 text-emerald-500" />
+                        )}
                       </div>
                       <div>
                         <div className="font-medium text-slate-200">{user.name || "Unknown"}</div>
@@ -159,6 +174,19 @@ export default function UsersPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-slate-200">{user.email}</TableCell>
+                  <TableCell>
+                    {user.role === "SUPER_ADMIN" ? (
+                      <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/30">
+                        <Crown className="h-3 w-3 mr-1" />
+                        Super Admin
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-blue-500/30">
+                        <Shield className="h-3 w-3 mr-1" />
+                        User
+                      </Badge>
+                    )}
+                  </TableCell>
                   <TableCell>
                     {user.emailVerified ? (
                       <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
@@ -232,6 +260,28 @@ export default function UsersPage() {
                 disabled
                 className="bg-slate-950 border-slate-800"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select value={userRole} onValueChange={setUserRole}>
+                <SelectTrigger className="bg-slate-950 border-slate-800">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                  <SelectItem value="USER">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-blue-500" />
+                      User
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="SUPER_ADMIN">
+                    <div className="flex items-center gap-2">
+                      <Crown className="h-4 w-4 text-amber-500" />
+                      Super Admin
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={closeDialog} className="border-slate-700 hover:bg-slate-800">

@@ -16,6 +16,11 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user is SUPER_ADMIN
+    if (session.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id },
       select: {
@@ -24,6 +29,7 @@ export async function GET(
         email: true,
         emailVerified: true,
         image: true,
+        role: true,
         createdAt: true,
         updatedAt: true,
         accounts: {
@@ -71,6 +77,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user is SUPER_ADMIN
+    if (session.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     // Prevent deleting your own account
     if (id === session.user.id) {
       return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
@@ -110,11 +121,17 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user is SUPER_ADMIN
+    if (session.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await request.json();
-    const { name, emailVerified } = body;
+    const { name, role, emailVerified } = body;
 
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
+    if (role !== undefined) updateData.role = role;
     if (emailVerified !== undefined) updateData.emailVerified = emailVerified;
 
     const user = await prisma.user.update({
@@ -125,6 +142,7 @@ export async function PATCH(
         name: true,
         email: true,
         emailVerified: true,
+        role: true,
         image: true,
         createdAt: true,
         updatedAt: true,

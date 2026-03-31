@@ -35,4 +35,14 @@ export const auth = betterAuth({
       sameSite: "lax",
     },
   },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: true,
+        defaultValue: "USER",
+        input: true,
+      },
+    },
+  },
 });
