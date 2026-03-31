@@ -27,4 +27,12 @@ export const auth = betterAuth({
       maxAge: 5 * 60, // 5 minutes
     },
   },
+  advanced: {
+    useSecureCookies: false, // Disable for localhost
+    defaultCookieAttributes: {
+      httpOnly: true,
+      secure: false, // Disable for localhost
+      sameSite: "lax",
+    },
+  },
 });
