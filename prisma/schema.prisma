@@ -23,6 +23,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
   sessions      Session[]
+  cookies       Cookie[]
 }
 
 model Session {
@@ -72,10 +73,12 @@ model Verification {
 // Application Tables
 model Cookie {
   id                Int             @id @default(autoincrement())
-  label             String          @unique
+  label             String
   agentRouterCookie String?         // Cookie for agentrouter.org domain
   githubCookie      String?         // Cookie for github.com domain
   status            String          @default("UNKNOWN") // ACTIVE, EXPIRED, UNKNOWN
+  userId            String?
+  user              User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
   schedules         Schedule[]
@@ -83,6 +86,9 @@ model Cookie {
   accountData       AccountData?
   redemptionLogs    RedemptionLog[]
   accounts          RouterAccount[]
+
+  @@unique([userId, label])
+  @@index([userId])
 }
 
 model RouterAccount {

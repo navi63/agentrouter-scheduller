@@ -263,7 +263,7 @@ export default function UsersPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
-              <Select value={userRole} onValueChange={setUserRole}>
+              <Select value={userRole} onValueChange={(value) => setUserRole(value || "USER")}>
                 <SelectTrigger className="bg-slate-950 border-slate-800">
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>

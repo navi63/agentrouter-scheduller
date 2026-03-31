@@ -1,11 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth-utils";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const session = await getSession(req);
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const cookies = await prisma.cookie.findMany({
+    where: {
+      userId: session.user.id,
+    },
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { schedules: true } },
@@ -16,6 +26,12 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const session = await getSession(req);
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await req.json();
   const { label, agentRouterEntries, githubEntries } = body;
 
@@ -56,11 +72,12 @@ export async function POST(req: Request) {
     );
   }
 
-  const data: any = { 
-    label, 
-    status: "UNKNOWN"
+  const data: any = {
+    label,
+    status: "UNKNOWN",
+    userId: session.user.id,
   };
-  
+
   if (agentRouterCookieString) data.agentRouterCookie = agentRouterCookieString;
   if (githubCookieString) data.githubCookie = githubCookieString;
 
