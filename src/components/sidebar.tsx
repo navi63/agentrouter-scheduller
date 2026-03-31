@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Cookie, CalendarClock, ScrollText, Activity, ArrowUp, Clock } from "lucide-react";
+import { LayoutDashboard, Cookie, CalendarClock, ScrollText, Activity, ArrowUp, Clock, User } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Cookies", href: "/cookies", icon: Cookie },
+  { name: "Accounts", href: "/accounts", icon: User },
   { name: "Scheduler", href: "/scheduler", icon: CalendarClock },
   { name: "Logs", href: "/logs", icon: ScrollText },
   { name: "Redemption Logs", href: "/redemption-logs", icon: ArrowUp },

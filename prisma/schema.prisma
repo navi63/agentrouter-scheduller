@@ -18,6 +18,17 @@ model Cookie {
   logs              Log[]
   accountData       AccountData?
   redemptionLogs    RedemptionLog[]
+  accounts          Account[]
+}
+
+model Account {
+  id        Int      @id @default(autoincrement())
+  username  String
+  name      String
+  cookieId  Int      @unique
+  cookie    Cookie   @relation(fields: [cookieId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Schedule {
