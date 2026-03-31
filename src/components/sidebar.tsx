@@ -12,7 +12,7 @@ import { toast } from "sonner";
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Cookies", href: "/dashboard/cookies", icon: Cookie },
-  { name: "Accounts", href: "/dashboard/accounts", icon: User },
+  { name: "Users", href: "/dashboard/users", icon: User },
   { name: "Scheduler", href: "/dashboard/scheduler", icon: CalendarClock },
   { name: "Logs", href: "/dashboard/logs", icon: ScrollText },
   { name: "Redemption Logs", href: "/dashboard/redemption-logs", icon: ArrowUp },
