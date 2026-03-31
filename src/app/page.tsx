@@ -13,13 +13,21 @@ export default function Home() {
           <p className="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
             Automate and schedule login/logout for agent routers to collect credits efficiently and securely.
           </p>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-4 rounded-lg transition-colors text-lg"
-          >
-            Go to Dashboard
-            <ArrowRight className="h-5 w-5" />
-          </Link>
+          <div className="flex items-center justify-center gap-4">
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-4 rounded-lg transition-colors text-lg"
+            >
+              Get Started
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold px-8 py-4 rounded-lg transition-colors text-lg border border-slate-700"
+            >
+              Sign In
+            </Link>
+          </div>
         </div>
 
         {/* Features Grid */}
