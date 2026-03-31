@@ -1,17 +1,43 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth-utils";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const session = await getSession(req);
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userFilter = {
+    userId: session.user.id,
+  };
+
   const [totalCookies, activeCookies, totalSchedules, activeSchedules, recentLogs, stats] =
     await Promise.all([
-      prisma.cookie.count(),
-      prisma.cookie.count({ where: { status: "ACTIVE" } }),
-      prisma.schedule.count(),
-      prisma.schedule.count({ where: { isActive: true } }),
+      prisma.cookie.count({ where: userFilter }),
+      prisma.cookie.count({ where: { ...userFilter, status: "ACTIVE" } }),
+      prisma.schedule.count({
+        where: {
+          cookie: userFilter,
+        },
+      }),
+      prisma.schedule.count({
+        where: {
+          cookie: userFilter,
+          isActive: true,
+        },
+      }),
       prisma.log.findMany({
+        where: {
+          OR: [
+            { cookie: userFilter },
+            { schedule: { cookie: userFilter } },
+          ],
+        },
         orderBy: { executedAt: "desc" },
         take: 5,
         include: {
@@ -21,11 +47,21 @@ export async function GET() {
       }),
       prisma.log.groupBy({
         by: ["status"],
+        where: {
+          OR: [
+            { cookie: userFilter },
+            { schedule: { cookie: userFilter } },
+          ],
+        },
         _count: { status: true },
       }),
     ]);
 
-  const redemptionLogs = await prisma.redemptionLog.findMany();
+  const redemptionLogs = await prisma.redemptionLog.findMany({
+    where: {
+      cookie: userFilter,
+    },
+  });
   const totalRedeemed = redemptionLogs.reduce((sum: number, log: { nominal: string }) => sum + parseFloat(log.nominal.replace(/[$,]/g, '')), 0);
 
   const successCount = stats.find((s: { status: string; _count: { status: number } }) => s.status === "SUCCESS")?._count?.status || 0;
@@ -40,6 +76,7 @@ export async function GET() {
 
   const nextSchedule = await prisma.schedule.findFirst({
     where: {
+      cookie: userFilter,
       isActive: true,
       time: { gte: currentTime },
     },

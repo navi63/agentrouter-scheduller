@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth-utils";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -8,6 +9,12 @@ export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  const session = await getSession(req);
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id: idParam } = await context.params;
   const id = parseInt(idParam);
   const body = await req.json();
@@ -17,16 +24,19 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
 
-  // Check if account exists
-  const existingAccount = await prisma.routerAccount.findUnique({
-    where: { id: id },
+  // Check if account exists and belongs to user
+  const existingAccount = await prisma.routerAccount.findFirst({
+    where: {
+      id: id,
+      cookie: { userId: session.user.id },
+    },
   });
 
   if (!existingAccount) {
     return NextResponse.json({ error: "Account not found" }, { status: 404 });
   }
 
-  // If updating cookieId, check if cookie exists and if another account already uses it
+  // If updating cookieId, check if cookie exists, belongs to user, and if another account already uses it
   if (cookieId !== undefined && cookieId !== existingAccount.cookieId) {
     const cookie = await prisma.cookie.findUnique({
       where: { id: cookieId },
@@ -34,6 +44,13 @@ export async function PUT(
 
     if (!cookie) {
       return NextResponse.json({ error: "Cookie not found" }, { status: 404 });
+    }
+
+    if (cookie.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Forbidden: Cookie does not belong to you" },
+        { status: 403 }
+      );
     }
 
     const accountWithCookie = await prisma.routerAccount.findFirst({
@@ -66,6 +83,12 @@ export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  const session = await getSession(req);
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id: idParam } = await context.params;
   const id = parseInt(idParam);
 
@@ -73,8 +96,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
 
-  const account = await prisma.routerAccount.findUnique({
-    where: { id: id },
+  // Check if account exists and belongs to user
+  const account = await prisma.routerAccount.findFirst({
+    where: {
+      id: id,
+      cookie: { userId: session.user.id },
+    },
   });
 
   if (!account) {
