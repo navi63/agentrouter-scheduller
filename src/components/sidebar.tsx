@@ -6,12 +6,12 @@ import { LayoutDashboard, Cookie, CalendarClock, ScrollText, Activity, ArrowUp, 
 import { useState, useEffect } from "react";
 
 const navItems = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Cookies", href: "/cookies", icon: Cookie },
-  { name: "Accounts", href: "/accounts", icon: User },
-  { name: "Scheduler", href: "/scheduler", icon: CalendarClock },
-  { name: "Logs", href: "/logs", icon: ScrollText },
-  { name: "Redemption Logs", href: "/redemption-logs", icon: ArrowUp },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Cookies", href: "/dashboard/cookies", icon: Cookie },
+  { name: "Accounts", href: "/dashboard/accounts", icon: User },
+  { name: "Scheduler", href: "/dashboard/scheduler", icon: CalendarClock },
+  { name: "Logs", href: "/dashboard/logs", icon: ScrollText },
+  { name: "Redemption Logs", href: "/dashboard/redemption-logs", icon: ArrowUp },
 ];
 
 export function Sidebar() {
@@ -51,7 +51,7 @@ export function Sidebar() {
 
       <nav className="flex-1 space-y-2">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+          const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}

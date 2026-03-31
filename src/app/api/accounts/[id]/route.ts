@@ -19,7 +19,7 @@ export async function PUT(
 
   // Check if account exists
   const existingAccount = await prisma.account.findUnique({
-    where: { id },
+    where: { id: id },
   });
 
   if (!existingAccount) {
@@ -54,7 +54,7 @@ export async function PUT(
   if (cookieId !== undefined) updateData.cookieId = cookieId;
 
   const account = await prisma.account.update({
-    where: { id },
+    where: { id: id },
     data: updateData,
     include: { cookie: true },
   });
@@ -74,7 +74,7 @@ export async function DELETE(
   }
 
   const account = await prisma.account.findUnique({
-    where: { id },
+    where: { id: id },
   });
 
   if (!account) {
@@ -82,7 +82,7 @@ export async function DELETE(
   }
 
   await prisma.account.delete({
-    where: { id },
+    where: { id: id },
   });
 
   return NextResponse.json({ success: true });

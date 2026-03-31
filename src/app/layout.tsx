@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/sidebar";
 import { QueryProvider } from "@/lib/query-provider";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -21,13 +20,8 @@ export default function RootLayout({
     <html lang="en" className="dark h-full">
       <body className={`${inter.variable} font-sans h-full min-h-full bg-slate-900 text-slate-50 antialiased`}>
         <QueryProvider>
-          <div className="flex h-full max-h-screen overflow-hidden">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto bg-slate-900 p-8">
-              <div className="mx-auto max-w-6xl">
-                {children}
-              </div>
-            </main>
+          <div className="min-h-screen">
+            {children}
           </div>
           <Toaster theme="dark" position="top-right" />
         </QueryProvider>
