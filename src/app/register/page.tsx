@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Lock, User, ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,13 +25,47 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters");
       return;
     }
 
     setIsLoading(true);
-    // TODO: Implement registration
-    setTimeout(() => setIsLoading(false), 1000);
+
+    try {
+      const { data, error } = await authClient.signUp.email(
+        {
+          email,
+          password,
+          name,
+          callbackURL: "/dashboard",
+        },
+        {
+          onRequest: () => {
+            // Loading state is already handled
+          },
+          onSuccess: (ctx) => {
+            toast.success("Account created successfully!");
+            router.push("/dashboard");
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message || "Failed to create account");
+          },
+        }
+      );
+
+      if (error) {
+        toast.error(error.message || "Failed to create account");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

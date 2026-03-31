@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
-  const accounts = await prisma.account.findMany({
+  const accounts = await prisma.routerAccount.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       cookie: true,
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   }
 
   // Check if account already exists for this cookie
-  const existingAccount = await prisma.account.findUnique({
+  const existingAccount = await prisma.routerAccount.findUnique({
     where: { cookieId },
   });
 
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const account = await prisma.account.create({
+  const account = await prisma.routerAccount.create({
     data: { username, name, cookieId },
     include: { cookie: true },
   });

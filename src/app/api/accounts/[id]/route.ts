@@ -18,7 +18,7 @@ export async function PUT(
   }
 
   // Check if account exists
-  const existingAccount = await prisma.account.findUnique({
+  const existingAccount = await prisma.routerAccount.findUnique({
     where: { id: id },
   });
 
@@ -36,7 +36,7 @@ export async function PUT(
       return NextResponse.json({ error: "Cookie not found" }, { status: 404 });
     }
 
-    const accountWithCookie = await prisma.account.findFirst({
+    const accountWithCookie = await prisma.routerAccount.findFirst({
       where: { cookieId },
     });
 
@@ -53,7 +53,7 @@ export async function PUT(
   if (name !== undefined) updateData.name = name;
   if (cookieId !== undefined) updateData.cookieId = cookieId;
 
-  const account = await prisma.account.update({
+  const account = await prisma.routerAccount.update({
     where: { id: id },
     data: updateData,
     include: { cookie: true },
@@ -73,7 +73,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
 
-  const account = await prisma.account.findUnique({
+  const account = await prisma.routerAccount.findUnique({
     where: { id: id },
   });
 
@@ -81,7 +81,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Account not found" }, { status: 404 });
   }
 
-  await prisma.account.delete({
+  await prisma.routerAccount.delete({
     where: { id: id },
   });
 

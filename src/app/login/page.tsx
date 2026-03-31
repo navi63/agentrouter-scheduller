@@ -2,28 +2,68 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Lock, ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Implement email/password login
-    setTimeout(() => setIsLoading(false), 1000);
+
+    try {
+      const { data, error } = await authClient.signIn.email(
+        {
+          email,
+          password,
+          callbackURL: "/dashboard",
+          rememberMe,
+        },
+        {
+          onRequest: () => {
+            // Loading state is already handled
+          },
+          onSuccess: (ctx) => {
+            toast.success("Successfully signed in!");
+            router.push("/dashboard");
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message || "Failed to sign in");
+          },
+        }
+      );
+
+      if (error) {
+        toast.error(error.message || "Failed to sign in");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGithubLogin = () => {
-    // TODO: Implement GitHub OAuth login
-    window.location.href = "/api/oauth/github/authorize";
+  const handleGithubLogin = async () => {
+    try {
+      await authClient.signIn.social({
+        provider: "github",
+        callbackURL: "/dashboard",
+      });
+    } catch (error) {
+      toast.error("Failed to sign in with GitHub");
+    }
   };
 
   return (
