@@ -67,58 +67,58 @@ export default function LogsPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Execution Logs</h1>
-          <p className="text-slate-400">View history of automated actions and API responses.</p>
+          <p className="text-muted-foreground">View history of automated actions and API responses.</p>
         </div>
 
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Select value={statusFilter} onValueChange={(val) => handleFilterChange(val || "ALL")}>
-              <SelectTrigger className="w-[180px] pl-9 bg-slate-900 border-slate-800 text-slate-200">
+              <SelectTrigger className="w-[180px] pl-9 bg-background border-border text-foreground">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+              <SelectContent className="bg-popover border-border text-popover-foreground">
                 <SelectItem value="ALL">All Executions</SelectItem>
-                <SelectItem value="SUCCESS" className="text-emerald-400">Success Only</SelectItem>
-                <SelectItem value="FAILED" className="text-red-400">Failures Only</SelectItem>
-                <SelectItem value="RUNNING" className="text-blue-400">Running Only</SelectItem>
+                <SelectItem value="SUCCESS" className="text-emerald-500">Success Only</SelectItem>
+                <SelectItem value="FAILED" className="text-destructive">Failures Only</SelectItem>
+                <SelectItem value="RUNNING" className="text-blue-500">Running Only</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
       </div>
 
-      <div className="rounded-md border border-slate-800 bg-slate-900 overflow-hidden flex flex-col">
+      <div className="rounded-md border border-border bg-card overflow-hidden flex flex-col">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-950/50">
-              <TableRow className="border-slate-800 hover:bg-transparent">
-                <TableHead className="w-[180px] text-slate-300">Timestamp</TableHead>
-                <TableHead className="w-[140px] text-slate-300">Status</TableHead>
-                <TableHead className="w-[200px] text-slate-300">Schedule Name</TableHead>
-                <TableHead className="w-[160px] text-slate-300">Cookie / Target</TableHead>
-                <TableHead className="w-[120px] text-slate-300">Action</TableHead>
-                <TableHead className="text-slate-300">Response / Error</TableHead>
-                <TableHead className="w-[100px] text-slate-300">Details</TableHead>
+            <TableHeader className="bg-muted/50">
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="w-[180px] text-foreground font-semibold">Timestamp</TableHead>
+                <TableHead className="w-[140px] text-foreground font-semibold">Status</TableHead>
+                <TableHead className="w-[200px] text-foreground font-semibold">Schedule Name</TableHead>
+                <TableHead className="w-[160px] text-foreground font-semibold">Cookie / Target</TableHead>
+                <TableHead className="w-[120px] text-foreground font-semibold">Action</TableHead>
+                <TableHead className="text-foreground font-semibold">Response / Error</TableHead>
+                <TableHead className="w-[100px] text-foreground font-semibold rounded-lg">Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow className="border-slate-800">
-                  <TableCell colSpan={7} className="h-[400px] text-center text-slate-500">
+                <TableRow className="border-border">
+                  <TableCell colSpan={7} className="h-[400px] text-center text-muted-foreground">
                     Loading execution logs...
                   </TableCell>
                 </TableRow>
               ) : logs.length === 0 ? (
-                <TableRow className="border-slate-800 hover:bg-slate-800/50">
-                  <TableCell colSpan={7} className="h-[400px] text-center text-slate-500">
+                <TableRow className="border-border hover:bg-muted/50">
+                  <TableCell colSpan={7} className="h-[400px] text-center text-muted-foreground">
                     No execution records found matching your criteria.
                   </TableCell>
                 </TableRow>
               ) : (
                 logs.map((log: any) => (
-                  <TableRow key={log.id} className="border-slate-800 hover:bg-slate-800/50 transition-colors">
-                    <TableCell className="text-slate-400 text-sm whitespace-nowrap">
+                  <TableRow key={log.id} className="border-border hover:bg-muted/50 transition-colors">
+                    <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                       {new Date(log.executedAt).toLocaleString(undefined, {
                         year: 'numeric', month: 'short', day: 'numeric',
                         hour: '2-digit', minute: '2-digit', second: '2-digit'
@@ -139,11 +139,11 @@ export default function LogsPage() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium text-slate-200 truncate max-w-[200px]" title={log.schedule?.name || "Manual Action"}>
-                      {log.schedule?.name || <span className="text-slate-500 italic">Manual or Deleted</span>}
+                    <TableCell className="font-medium text-foreground truncate max-w-[200px]" title={log.schedule?.name || "Manual Action"}>
+                      {log.schedule?.name || <span className="text-muted-foreground italic">Manual or Deleted</span>}
                     </TableCell>
                     <TableCell className="truncate max-w-[160px]" title={log.cookie?.label || "Unknown"}>
-                      <span className="text-slate-300 bg-slate-800 px-2 py-1 rounded text-xs border border-slate-700">
+                      <span className="text-muted-foreground bg-muted px-2 py-1 rounded text-xs border border-border">
                         {log.cookie?.label || "Unknown"}
                       </span>
                     </TableCell>
@@ -153,14 +153,14 @@ export default function LogsPage() {
                         {log.actionType}
                       </span>
                     </TableCell>
-                    <TableCell className="text-slate-400 text-sm max-w-[300px] truncate" title={log.response || ""}>
+                    <TableCell className="text-muted-foreground text-sm max-w-[300px] truncate" title={log.response || ""}>
                       {log.response || "-"}
                     </TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-slate-400 hover:text-slate-200"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary"
                         onClick={() => setSelectedLogId(log.id)}
                       >
                         <Eye className="h-4 w-4" />
@@ -173,28 +173,28 @@ export default function LogsPage() {
           </Table>
         </div>
 
-        <div className="border-t border-slate-800 bg-slate-950/30 p-4 flex items-center justify-between">
-          <div className="text-sm text-slate-400">
-            Showing <span className="font-medium text-slate-200">{logs.length}</span> records
+        <div className="border-t border-border bg-muted/20 p-4 flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing <span className="font-medium text-foreground">{logs.length}</span> records
             {data?.total ? ` of ${data.total} total` : ""}
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              className="bg-slate-900 border-slate-700 hover:bg-slate-800 text-slate-300 h-8"
+              className="bg-background border-border hover:bg-secondary text-foreground h-8"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1 || isLoading}
             >
               <ChevronLeft className="h-4 w-4 mr-1" /> Prev
             </Button>
-            <span className="text-sm text-slate-400 px-4">
+            <span className="text-sm text-muted-foreground px-4">
               Page {page} of {Math.max(1, totalPages)}
             </span>
             <Button
               variant="outline"
               size="sm"
-              className="bg-slate-900 border-slate-700 hover:bg-slate-800 text-slate-300 h-8"
+              className="bg-background border-border hover:bg-secondary text-foreground h-8"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages || isLoading}
             >
@@ -206,14 +206,14 @@ export default function LogsPage() {
 
       {/* Log Detail Dialog */}
       <Dialog open={!!selectedLogId} onOpenChange={() => setSelectedLogId(null)}>
-        <DialogContent className="!max-w-[90vw] !w-[90vw] max-h-[95vh] overflow-y-auto bg-slate-900 border-slate-800 text-slate-100">
+        <DialogContent className="!max-w-[90vw] !w-[90vw] max-h-[95vh] overflow-y-auto bg-popover border-border text-popover-foreground shadow-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>Log Details</span>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-slate-400 hover:text-slate-200"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                 onClick={() => setSelectedLogId(null)}
               >
                 <X className="h-4 w-4" />
@@ -221,7 +221,7 @@ export default function LogsPage() {
             </DialogTitle>
           </DialogHeader>
           {isLoadingDetail ? (
-            <div className="py-12 text-center text-slate-500">Loading detailed logs...</div>
+            <div className="py-12 text-center text-muted-foreground">Loading detailed logs...</div>
           ) : detailData ? (
             <LogDetailView log={detailData} />
           ) : null}

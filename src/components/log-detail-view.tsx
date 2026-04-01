@@ -49,7 +49,7 @@ export function LogDetailView({ log }: LogDetailViewProps) {
       case "DEBUG":
         return <Bug className="h-4 w-4 text-purple-400" />;
       default:
-        return <Info className="h-4 w-4 text-slate-400" />;
+        return <Info className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -64,7 +64,7 @@ export function LogDetailView({ log }: LogDetailViewProps) {
       case "DEBUG":
         return "bg-purple-500/10 text-purple-400 border-purple-500/20";
       default:
-        return "bg-slate-500/10 text-slate-400 border-slate-500/20";
+        return "bg-muted text-muted-foreground border-border";
     }
   };
 
@@ -81,10 +81,10 @@ export function LogDetailView({ log }: LogDetailViewProps) {
             <XCircle className="h-6 w-6 text-red-400" />
           )}
           <div>
-            <h3 className="text-xl font-bold text-slate-100">
+            <h3 className="text-xl font-bold text-foreground">
               {log.schedule?.name || "Manual Action"} - {log.actionType}
             </h3>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted-foreground">
               {new Date(log.executedAt).toLocaleString(undefined, {
                 year: "numeric",
                 month: "short",
@@ -97,35 +97,34 @@ export function LogDetailView({ log }: LogDetailViewProps) {
           </div>
         </div>
 
-        {/* Summary Cards */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-slate-900 rounded-lg border border-slate-800 p-3">
-            <p className="text-xs text-slate-500 mb-1">Cookie / Target</p>
-            <p className="text-sm font-medium text-slate-200">{log.cookie?.label || "Unknown"}</p>
+          <div className="bg-muted/30 rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground mb-1">Cookie / Target</p>
+            <p className="text-sm font-medium text-foreground">{log.cookie?.label || "Unknown"}</p>
           </div>
-          <div className="bg-slate-900 rounded-lg border border-slate-800 p-3">
-            <p className="text-xs text-slate-500 mb-1">Action Type</p>
-            <p className="text-sm font-medium text-slate-200">{log.actionType}</p>
+          <div className="bg-muted/30 rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground mb-1">Action Type</p>
+            <p className="text-sm font-medium text-foreground">{log.actionType}</p>
           </div>
         </div>
 
         {log.response && (
-          <div className="bg-slate-900 rounded-lg border border-slate-800 p-4">
-            <p className="text-xs text-slate-500 mb-2">Final Response</p>
-            <pre className="text-sm text-slate-300 whitespace-pre-wrap break-all">{log.response}</pre>
+          <div className="bg-muted/30 rounded-lg border border-border p-4">
+            <p className="text-xs text-muted-foreground mb-2">Final Response</p>
+            <pre className="text-sm text-muted-foreground whitespace-pre-wrap break-all">{log.response}</pre>
           </div>
         )}
       </div>
 
       {/* Execution Log - GitLab Style */}
-      <div className="bg-slate-950/50 rounded-lg border border-slate-800 overflow-hidden">
-        <div className="bg-slate-900 px-4 py-3 border-b border-slate-800">
-          <h4 className="text-sm font-semibold text-slate-200">Execution Log</h4>
+      <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <div className="bg-muted/50 px-4 py-3 border-b border-border">
+          <h4 className="text-sm font-semibold text-foreground">Execution Log</h4>
         </div>
 
-        <div className="divide-y divide-slate-800">
+        <div className="divide-y divide-border">
           {log.entries.length === 0 ? (
-            <div className="p-6 text-center text-slate-500 text-sm">
+            <div className="p-6 text-center text-muted-foreground text-sm">
               No detailed log entries available for this execution.
             </div>
           ) : (
@@ -140,24 +139,24 @@ export function LogDetailView({ log }: LogDetailViewProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-mono px-1.5 py-0.5 rounded border ${getLevelBadge(entry.level)}`}>
+                      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${getLevelBadge(entry.level)}`}>
                         {entry.level}
                       </span>
-                      <span className="text-xs text-slate-500 font-mono">
+                      <span className="text-[10px] text-muted-foreground font-mono">
                         {new Date(entry.timestamp).toISOString()}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-300">{entry.message}</p>
+                    <p className="text-sm text-foreground">{entry.message}</p>
                     {entry.step && (
-                      <p className="text-xs text-slate-500 mt-1">{entry.step}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{entry.step}</p>
                     )}
                   </div>
                   {entry.metadata && (
                     <div className="flex-shrink-0 mt-1">
                       {expandedEntries.has(entry.id) ? (
-                        <ChevronDown className="h-4 w-4 text-slate-500" />
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
                       ) : (
-                        <ChevronRight className="h-4 w-4 text-slate-500" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       )}
                     </div>
                   )}
@@ -165,10 +164,10 @@ export function LogDetailView({ log }: LogDetailViewProps) {
 
                 {/* Expandable Metadata */}
                 {entry.metadata && expandedEntries.has(entry.id) && (
-                  <div className="px-4 pb-3 ml-10 border-l-2 border-slate-800">
-                    <div className="bg-slate-900 rounded-lg p-3 border border-slate-800">
-                      <p className="text-xs text-slate-500 mb-2">Details</p>
-                      <pre className="text-xs text-slate-400 font-mono whitespace-pre-wrap break-all">
+                  <div className="px-4 pb-3 ml-10 border-l-2 border-border">
+                    <div className="bg-muted/50 rounded-lg p-3 border border-border">
+                      <p className="text-xs text-muted-foreground mb-2">Details</p>
+                      <pre className="text-xs text-muted-foreground font-mono whitespace-pre-wrap break-all">
                         {entry.metadata}
                       </pre>
                     </div>

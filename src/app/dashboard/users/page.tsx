@@ -125,39 +125,39 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Users</h1>
-        <p className="text-slate-400">Manage users registered with Better Auth.</p>
+        <p className="text-muted-foreground">Manage users registered with Better Auth.</p>
       </div>
 
-      <div className="rounded-md border border-slate-800 bg-slate-900 overflow-hidden">
+      <div className="rounded-md border border-border bg-card overflow-hidden">
         <Table>
-          <TableHeader className="bg-slate-950/50">
-            <TableRow className="border-slate-800 hover:bg-transparent">
-              <TableHead className="text-slate-300">User</TableHead>
-              <TableHead className="text-slate-300">Email</TableHead>
-              <TableHead className="text-slate-300">Role</TableHead>
-              <TableHead className="text-slate-300">Email Verified</TableHead>
-              <TableHead className="text-slate-300">Sessions</TableHead>
-              <TableHead className="text-slate-300">Accounts</TableHead>
-              <TableHead className="text-slate-300">Created</TableHead>
-              <TableHead className="text-right text-slate-300">Actions</TableHead>
+          <TableHeader className="bg-muted/50">
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-foreground font-semibold">User</TableHead>
+              <TableHead className="text-foreground font-semibold">Email</TableHead>
+              <TableHead className="text-foreground font-semibold">Role</TableHead>
+              <TableHead className="text-foreground font-semibold">Email Verified</TableHead>
+              <TableHead className="text-foreground font-semibold">Sessions</TableHead>
+              <TableHead className="text-foreground font-semibold">Accounts</TableHead>
+              <TableHead className="text-foreground font-semibold">Created</TableHead>
+              <TableHead className="text-right text-foreground font-semibold rounded-lg">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow className="border-slate-800">
-                <TableCell colSpan={8} className="h-24 text-center text-slate-500">
+              <TableRow className="border-border">
+                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                   Loading users...
                 </TableCell>
               </TableRow>
             ) : users.length === 0 ? (
-              <TableRow className="border-slate-800 hover:bg-slate-800/50">
-                <TableCell colSpan={8} className="h-24 text-center text-slate-500">
+              <TableRow className="border-border hover:bg-muted/50">
+                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                   No users found.
                 </TableCell>
               </TableRow>
             ) : (
               users.map((user: any) => (
-                <TableRow key={user.id} className="border-slate-800 hover:bg-slate-800/50 transition-colors">
+                <TableRow key={user.id} className="border-border hover:bg-muted/50 transition-colors">
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
@@ -168,12 +168,12 @@ export default function UsersPage() {
                         )}
                       </div>
                       <div>
-                        <div className="font-medium text-slate-200">{user.name || "Unknown"}</div>
-                        <div className="text-xs text-slate-500">ID: {user.id}</div>
+                        <div className="font-medium text-foreground">{user.name || "Unknown"}</div>
+                        <div className="text-xs text-muted-foreground">ID: {user.id}</div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-slate-200">{user.email}</TableCell>
+                  <TableCell className="text-foreground">{user.email}</TableCell>
                   <TableCell>
                     {user.role === "SUPER_ADMIN" ? (
                       <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/30">
@@ -200,11 +200,11 @@ export default function UsersPage() {
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-slate-200">{user._count.sessions}</TableCell>
-                  <TableCell className="text-slate-200">{user._count.accounts}</TableCell>
-                  <TableCell className="text-slate-200">
+                  <TableCell className="text-foreground">{user._count.sessions}</TableCell>
+                  <TableCell className="text-foreground">{user._count.accounts}</TableCell>
+                  <TableCell className="text-foreground">
                     <div className="flex items-center gap-1 text-sm">
-                      <Calendar className="h-3 w-3 text-slate-400" />
+                      <Calendar className="h-3 w-3 text-muted-foreground" />
                       {formatDate(user.createdAt)}
                     </div>
                   </TableCell>
@@ -213,7 +213,7 @@ export default function UsersPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-secondary"
                         onClick={() => handleEditUser(user)}
                       >
                         <Edit2 className="h-4 w-4" />
@@ -221,7 +221,7 @@ export default function UsersPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-red-400 hover:bg-red-400/10"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         onClick={() => handleDeleteUser(user.id, user.email)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -236,7 +236,7 @@ export default function UsersPage() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-800 text-slate-100">
+        <DialogContent className="sm:max-w-[425px] bg-popover border-border text-popover-foreground">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>
@@ -248,7 +248,7 @@ export default function UsersPage() {
                 placeholder="Enter user name"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                className="bg-slate-950 border-slate-800"
+                className="bg-background border-border"
                 required
               />
             </div>
@@ -258,16 +258,16 @@ export default function UsersPage() {
                 id="email"
                 value={editingUser?.email || ""}
                 disabled
-                className="bg-slate-950 border-slate-800"
+                className="bg-muted border-border"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
               <Select value={userRole} onValueChange={(value) => setUserRole(value || "USER")}>
-                <SelectTrigger className="bg-slate-950 border-slate-800">
+                <SelectTrigger className="bg-background border-border">
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                <SelectContent className="bg-popover border-border text-popover-foreground">
                   <SelectItem value="USER">
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-blue-500" />
@@ -284,7 +284,7 @@ export default function UsersPage() {
               </Select>
             </div>
             <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={closeDialog} className="border-slate-700 hover:bg-slate-800">
+              <Button type="button" variant="outline" onClick={closeDialog} className="border-border hover:bg-secondary">
                 Cancel
               </Button>
               <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white" disabled={updateMutation.isPending}>
