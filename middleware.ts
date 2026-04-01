@@ -24,7 +24,14 @@ export async function middleware(request: NextRequest) {
   // Fetch session without loading Prisma in edge runtime
   let session = null;
   try {
-    const res = await fetch(new URL("/api/auth/session", request.url), {
+    let origin = request.nextUrl.origin;
+    // If the request comes from an external HTTPS domain (e.g. Cloudflare Tunnel),
+    // we bypass loopback network blocking by querying the local Next.js instance natively.
+    if (origin.startsWith("https://")) {
+      origin = `http://127.0.0.1:${process.env.PORT || 3000}`;
+    }
+
+    const res = await fetch(new URL("/api/auth/session", origin), {
       headers: {
         cookie: request.headers.get("cookie") || "",
       },
