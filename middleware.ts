@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSession } from "@/lib/auth-utils";
 
 type RoleProtectedRoute = {
   path: string;
@@ -22,8 +21,20 @@ export async function middleware(request: NextRequest) {
   console.log("=== MIDDLEWARE DEBUG ===");
   console.log("Pathname:", pathname);
 
-  // Get session
-  const session = await getSession(request);
+  // Fetch session without loading Prisma in edge runtime
+  let session = null;
+  try {
+    const res = await fetch(new URL("/api/auth/get-session", request.url), {
+      headers: {
+        cookie: request.headers.get("cookie") || "",
+      },
+    });
+    if (res.ok) {
+      session = await res.json();
+    }
+  } catch (error) {
+    console.error("Middleware session fetch error:", error);
+  }
 
   console.log("Has session:", !!session);
   console.log("User role:", session?.user?.role);

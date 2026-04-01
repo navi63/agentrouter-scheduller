@@ -62,7 +62,12 @@ export async function GET(req: Request) {
       cookie: userFilter,
     },
   });
-  const totalRedeemed = (redemptionLogs || []).reduce((sum: number, log: { nominal: string }) => sum + parseFloat(log.nominal.replace(/[$,]/g, '')), 0);
+  const totalRedeemed = (redemptionLogs || []).reduce((sum: number, log: { nominal?: string }) => {
+    if (!log.nominal) return sum;
+    const cleanValue = log.nominal.replace(/[$,]/g, '');
+    const numericValue = parseFloat(cleanValue);
+    return sum + (isNaN(numericValue) ? 0 : numericValue);
+  }, 0);
 
   const successCount = stats.find((s: { status: string; _count: { status: number } }) => s.status === "SUCCESS")?._count?.status || 0;
   const failedCount = stats.find((s: { status: string; _count: { status: number } }) => s.status === "FAILED")?._count?.status || 0;

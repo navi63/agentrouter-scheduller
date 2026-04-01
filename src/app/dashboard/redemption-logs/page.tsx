@@ -24,8 +24,8 @@ export default function RedemptionLogsPage() {
     },
   });
 
-  const totalRedeemed = logs.reduce((sum: number, log: any) => {
-    const nominal = parseFloat(log.nominal.replace(/[$,]/g, ''));
+  const totalRedeemed = (logs || []).reduce((sum: number, log: any) => {
+    const nominal = parseFloat(log.nominal?.replace(/[$,]/g, '') || '0');
     return sum + nominal;
   }, 0);
 
