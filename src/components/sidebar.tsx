@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, Cookie, CalendarClock, ScrollText, Activity, ArrowUp, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Cookie, CalendarClock, ScrollText, Activity, ArrowUp, User, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useMobileMenu } from "@/components/mobile-menu-context";
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -17,11 +18,29 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isMobileOpen, setIsMobileOpen } = useMobileMenu();
 
   return (
-    <div className={`relative flex h-full flex-col bg-slate-950 text-slate-100 border-r border-slate-800 p-4 transition-all duration-300 ease-in-out ${isCollapsed ? "w-[76px]" : "w-64"}`}>
-      
-      {/* Toggle Button */}
+    <>
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm transition-opacity md:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      <div className={`fixed inset-y-0 left-0 z-50 flex h-full flex-col bg-slate-950 text-slate-100 border-r border-slate-800 p-4 transition-all duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} ${isCollapsed ? "md:w-[76px] w-64" : "w-64"}`}>
+        
+        {/* Mobile Close Button */}
+        <button
+          onClick={() => setIsMobileOpen(false)}
+          className="absolute right-4 top-5 z-10 p-1 text-slate-400 transition-colors hover:text-slate-100 md:hidden"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Toggle Button (Desktop) */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
         className="absolute -right-3 top-7 z-10 hidden h-6 w-6 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-slate-400 shadow-sm transition-colors hover:bg-slate-700 hover:text-slate-100 sm:flex"
@@ -43,6 +62,7 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={() => setIsMobileOpen(false)}
               title={isCollapsed ? item.name : undefined}
               className={`flex items-center gap-3 rounded-lg py-2.5 transition-all duration-200 overflow-hidden ${
                 isActive
@@ -60,10 +80,11 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-auto px-2 py-4">
-        <div className={`py-2 text-xs text-slate-500/70 border-t border-slate-800/50 pt-4 whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? "text-center px-0 border-transparent opacity-0" : "px-2 opacity-100"}`}>
+        <div className={`py-2 text-xs text-slate-500/70 border-t border-slate-800/50 pt-4 whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? "md:text-center md:px-0 md:border-transparent md:opacity-0 px-2 opacity-100" : "px-2 opacity-100"}`}>
           <p>Stitch v1.0</p>
         </div>
       </div>
     </div>
+    </>
   );
 }

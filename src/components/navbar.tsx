@@ -3,7 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 import { useState, useEffect } from "react";
-import { Clock, LogOut, User } from "lucide-react";
+import { Clock, LogOut, User, Menu } from "lucide-react";
+import { useMobileMenu } from "@/components/mobile-menu-context";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -16,6 +17,7 @@ import {
 
 export function Navbar() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const { setIsMobileOpen } = useMobileMenu();
 
   useEffect(() => {
     setCurrentTime(new Date());
@@ -66,9 +68,16 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-800/60 bg-slate-950/50 backdrop-blur-md">
-      <div className="flex h-16 items-center justify-between px-8 mx-auto max-w-6xl">
-        {/* Left Side: Clock */}
-        <div className="flex items-center text-slate-400">
+      <div className="flex h-16 w-full items-center justify-between px-4 sm:px-8 mx-auto max-w-6xl">
+        {/* Left Side: Clock & Mobile Menu */}
+        <div className="flex items-center gap-3 text-slate-400">
+          <button
+            onClick={() => setIsMobileOpen(true)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/50 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 md:hidden shadow-sm"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+          
           {currentTime ? (
             <div className="flex items-center gap-3 bg-slate-900/40 px-3 py-1.5 rounded-full border border-slate-800/50 shadow-sm transition-all hover:bg-slate-800/50">
               <Clock className="h-4 w-4 text-emerald-500/80" />
