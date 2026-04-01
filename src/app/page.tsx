@@ -8,7 +8,7 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-12 sm:mb-16">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
-            Stitch <span className="text-indigo-500">Auto-Credit</span>
+            AgentRouter <span className="text-indigo-500">Scheduler</span>
           </h1>
           <p className="text-lg sm:text-xl text-slate-400 mb-8 max-w-2xl mx-auto px-2">
             Automate and schedule login/logout for agent routers to collect credits efficiently and securely.

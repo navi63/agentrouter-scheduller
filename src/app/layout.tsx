@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Stitch Auto-Credit Automation",
+  title: "AgentRouter Scheduler",
   description: "Automate and schedule login/logout for agent routers to collect credits.",
 };
 

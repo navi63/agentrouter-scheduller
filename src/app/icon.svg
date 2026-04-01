@@ -1,0 +1,27 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="64" fill="url(#bgGradient)"/>
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#1e1b4b" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Router Box -->
+  <rect x="56" y="112" width="144" height="64" rx="16" fill="none" stroke="#818cf8" stroke-width="16" />
+  
+  <!-- Router Antennas -->
+  <path d="M80 112 V64 M176 112 V64" fill="none" stroke="#818cf8" stroke-width="16" stroke-linecap="round" />
+  
+  <!-- Router Lights -->
+  <circle cx="96" cy="144" r="8" fill="#e0e7ff" />
+  <circle cx="128" cy="144" r="8" fill="#e0e7ff" />
+  <circle cx="160" cy="144" r="8" fill="#e0e7ff" />
+  
+  <!-- Zap/Credit -->
+  <path d="M125 180 L145 110 H120 L135 70 L105 130 H125 L125 180 Z" fill="#fbbf24" stroke="#ffffff" stroke-width="4" stroke-linejoin="round" filter="url(#glow)"/>
+</svg>

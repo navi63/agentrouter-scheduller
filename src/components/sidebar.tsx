@@ -51,7 +51,7 @@ export function Sidebar() {
       <div className={`flex items-center gap-3 px-2 py-4 mb-6 transition-all duration-300 ${isCollapsed ? "justify-center" : "justify-start"}`}>
         <Activity className="h-6 w-6 shrink-0 text-emerald-500" />
         <span className={`text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-400 whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}>
-          Stitch Auto
+          AgentRouter
         </span>
       </div>
 
@@ -81,7 +81,7 @@ export function Sidebar() {
 
       <div className="mt-auto px-2 py-4">
         <div className={`py-2 text-xs text-sidebar-foreground/50 border-t border-sidebar-border pt-4 whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? "md:text-center md:px-0 md:border-transparent md:opacity-0 px-2 opacity-100" : "px-2 opacity-100"}`}>
-          <p>Stitch v1.0</p>
+          <p>AgentRouter v1.0</p>
         </div>
       </div>
     </div>
