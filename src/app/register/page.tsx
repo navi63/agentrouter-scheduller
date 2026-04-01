@@ -72,13 +72,13 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Create Account</h1>
           <p className="text-slate-400">Join us to automate your credit collection</p>
         </div>
 
         <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader>
-            <CardTitle className="text-white text-2xl">Sign Up</CardTitle>
+            <CardTitle className="text-white text-xl sm:text-2xl">Sign Up</CardTitle>
             <CardDescription className="text-slate-400">
               Fill in the form to create your account
             </CardDescription>
