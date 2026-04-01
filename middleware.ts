@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
   // Fetch session without loading Prisma in edge runtime
   let session = null;
   try {
-    const res = await fetch(new URL("/api/auth/get-session", request.url), {
+    const res = await fetch(new URL("/api/auth/session", request.url), {
       headers: {
         cookie: request.headers.get("cookie") || "",
       },
