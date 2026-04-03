@@ -2,6 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
+interface UserUpdateData {
+  name?: string;
+  role?: string;
+  emailVerified?: Date | null;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -129,7 +135,7 @@ export async function PATCH(
     const body = await request.json();
     const { name, role, emailVerified } = body;
 
-    const updateData: any = {};
+    const updateData: UserUpdateData = {};
     if (name !== undefined) updateData.name = name;
     if (role !== undefined) updateData.role = role;
     if (emailVerified !== undefined) updateData.emailVerified = emailVerified;

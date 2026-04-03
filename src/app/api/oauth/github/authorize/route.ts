@@ -67,7 +67,7 @@ export async function GET(req: Request) {
       method: "GET",
       headers: stateHeaders,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to connect to agentrouter.org" },
       { status: 503 }

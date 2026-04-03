@@ -5,6 +5,12 @@ import { getSession } from "@/lib/auth-utils";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+interface RouterAccountUpdateData {
+  username?: string;
+  name?: string;
+  cookieId?: number;
+}
+
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
@@ -65,7 +71,7 @@ export async function PUT(
     }
   }
 
-  const updateData: any = {};
+  const updateData: RouterAccountUpdateData = {};
   if (username !== undefined) updateData.username = username;
   if (name !== undefined) updateData.name = name;
   if (cookieId !== undefined) updateData.cookieId = cookieId;

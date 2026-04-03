@@ -25,6 +25,14 @@ export async function GET(req: Request) {
   return NextResponse.json(cookies);
 }
 
+interface CookieCreateData {
+  label: string;
+  status: string;
+  userId: string;
+  agentRouterCookie?: string;
+  githubCookie?: string;
+}
+
 export async function POST(req: Request) {
   const session = await getSession(req);
 
@@ -72,7 +80,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const data: any = {
+  const data: CookieCreateData = {
     label,
     status: "UNKNOWN",
     userId: session.user.id,

@@ -5,6 +5,13 @@ import { getSession } from "@/lib/auth-utils";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+interface CookieUpdateData {
+  label?: string;
+  status?: string;
+  agentRouterCookie?: string | null;
+  githubCookie?: string | null;
+}
+
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -34,7 +41,7 @@ export async function PUT(
   const body = await req.json();
   const { label, agentRouterEntries, githubEntries, status } = body;
 
-  const data: any = {};
+  const data: CookieUpdateData = {};
   if (label) data.label = label;
   if (status) data.status = status;
 

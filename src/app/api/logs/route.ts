@@ -5,6 +5,14 @@ import { getSession } from "@/lib/auth-utils";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+interface LogWhereCondition {
+  status?: string;
+  OR?: Array<{
+    cookie?: { userId: string };
+    schedule?: { cookie?: { userId: string } };
+  }>;
+}
+
 export async function GET(req: Request) {
   const session = await getSession(req);
 
@@ -18,7 +26,7 @@ export async function GET(req: Request) {
   const pageSize = parseInt(searchParams.get("pageSize") || "20");
   const skip = (page - 1) * pageSize;
 
-  const where: any = {};
+  const where: LogWhereCondition = {};
   if (status && status !== "ALL") {
     where.status = status;
   }

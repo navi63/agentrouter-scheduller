@@ -25,7 +25,6 @@ export async function GET(req: NextRequest) {
 
   // Parse state to extract cookieId if present (format: "state|cookieId")
   const stateParts = state.split("|");
-  const actualState = stateParts[0];
   const cookieId = stateParts[1] ? parseInt(stateParts[1]) : null;
 
   try {
