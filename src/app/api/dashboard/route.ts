@@ -72,14 +72,14 @@ export async function GET(req: Request) {
   const successCount = stats.find((s: { status: string; _count: { status: number } }) => s.status === "SUCCESS")?._count?.status || 0;
   const failedCount = stats.find((s: { status: string; _count: { status: number } }) => s.status === "FAILED")?._count?.status || 0;
 
-  // Get next upcoming schedule
+  // Get all upcoming schedules for today
   const now = new Date();
   const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now
     .getMinutes()
     .toString()
     .padStart(2, "0")}`;
 
-  const nextSchedule = await prisma.schedule.findFirst({
+  const nextSchedules = await prisma.schedule.findMany({
     where: {
       cookie: userFilter,
       isActive: true,
@@ -99,7 +99,7 @@ export async function GET(req: Request) {
     successCount,
     failedCount,
     recentLogs,
-    nextSchedule,
+    nextSchedules,
     totalRedeemed,
   });
 }

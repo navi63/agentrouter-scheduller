@@ -205,26 +205,37 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {stats?.nextSchedule ? (
-              <div className="rounded-lg bg-muted/50 p-4 border-animated-card">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-semibold text-lg">{stats.nextSchedule.name}</h3>
-                    <div className="flex gap-2 mt-2">
-                      <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-md border border-border">
-                        {stats.nextSchedule.cookie.label}
-                      </span>
-                      <span className="text-xs bg-indigo-500/10 text-indigo-500 border border-indigo-500/30 px-2 py-1 rounded-md">
-                        {stats.nextSchedule.type}
-                      </span>
+            {stats?.nextSchedules && stats.nextSchedules.length > 0 ? (
+              <div className="max-h-[400px] overflow-y-auto space-y-3 pr-2 scrollbar-hide">
+                {stats.nextSchedules.map((schedule: any, index: number) => (
+                  <div
+                    key={schedule.id}
+                    className={`rounded-lg bg-muted/50 p-4 ${
+                      index === 0 ? 'border-animated-card' : 'border border-border'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-semibold text-lg">{schedule.name}</h3>
+                        <div className="flex gap-2 mt-2">
+                          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-md border border-border">
+                            {schedule.cookie.label}
+                          </span>
+                          <span className="text-xs bg-indigo-500/10 text-indigo-500 border border-indigo-500/30 px-2 py-1 rounded-md">
+                            {schedule.type}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-3xl font-bold text-indigo-400">{schedule.time}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {index === 0 ? 'Next Up' : 'Today'}
+                        </div>
+                      </div>
                     </div>
+                    {index === 0 && <ProgressBar scheduleTime={schedule.time} />}
                   </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-indigo-400">{stats.nextSchedule.time}</div>
-                    <div className="text-xs text-muted-foreground mt-1">Today</div>
-                  </div>
-                </div>
-                <ProgressBar scheduleTime={stats.nextSchedule.time} />
+                ))}
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
