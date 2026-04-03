@@ -29,13 +29,35 @@ import {
 } from "@/components/ui/dialog";
 import { LogDetailView } from "@/components/log-detail-view";
 
+interface Log {
+  id: number;
+  executedAt: string;
+  status: "SUCCESS" | "FAILED" | "RUNNING";
+  actionType: "LOGIN" | "LOGOUT";
+  response: string;
+  schedule?: {
+    id: number;
+    name: string;
+  };
+  cookie?: {
+    id: number;
+    label: string;
+  };
+}
+
+interface LogsResponse {
+  logs: Log[];
+  totalPages: number;
+  total: number;
+}
+
 export default function LogsPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
   const pageSize = 15;
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<LogsResponse>({
     queryKey: ["logs", page, statusFilter],
     queryFn: async () => {
       const res = await fetch(`/api/logs?page=${page}&pageSize=${pageSize}&status=${statusFilter}`);
@@ -44,7 +66,7 @@ export default function LogsPage() {
     refetchInterval: 15000,
   });
 
-  const { data: detailData, isLoading: isLoadingDetail } = useQuery({
+  const { data: detailData, isLoading: isLoadingDetail } = useQuery<Log>({
     queryKey: ["log-detail", selectedLogId],
     queryFn: async () => {
       if (!selectedLogId) return null;
@@ -116,7 +138,7 @@ export default function LogsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                logs.map((log: any) => (
+                logs.map((log) => (
                   <TableRow key={log.id} className="border-border hover:bg-muted/50 transition-colors">
                     <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                       {new Date(log.executedAt).toLocaleString(undefined, {

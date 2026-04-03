@@ -34,6 +34,30 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+interface Schedule {
+  id: number;
+  name: string;
+  cookieId: number;
+  time: string;
+  type: "LOGIN" | "LOGOUT" | "LOGIN_THEN_LOGOUT";
+  isActive: boolean;
+  cookie?: {
+    id: number;
+    label: string;
+  };
+}
+
+interface Cookie {
+  id: number;
+  label: string;
+}
+
+interface TriggerResult {
+  results: Array<{
+    status: "SUCCESS" | "FAILED";
+  }>;
+}
+
 export default function SchedulerPage() {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -47,7 +71,7 @@ export default function SchedulerPage() {
   const [timeMode, setTimeMode] = useState<"time" | "cron">("time");
   const [type, setType] = useState("");
 
-  const { data: schedules = [], isLoading: schedLoading } = useQuery({
+  const { data: schedules = [], isLoading: schedLoading } = useQuery<Schedule[]>({
     queryKey: ["schedules"],
     queryFn: async () => {
       const res = await fetch("/api/schedules");
@@ -55,7 +79,7 @@ export default function SchedulerPage() {
     },
   });
 
-  const { data: cookies = [], isLoading: cookieLoading } = useQuery({
+  const { data: cookies = [], isLoading: cookieLoading } = useQuery<Cookie[]>({
     queryKey: ["cookies"],
     queryFn: async () => {
       const res = await fetch("/api/cookies");
@@ -64,7 +88,7 @@ export default function SchedulerPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (newSched: any) => {
+    mutationFn: async (newSched: Omit<Schedule, "id" | "isActive" | "cookie">) => {
       const res = await fetch("/api/schedules", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -84,7 +108,7 @@ export default function SchedulerPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: { id: number; name: string; cookieId: number; type: string; time: string }) => {
       const res = await fetch(`/api/schedules/${data.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -143,10 +167,10 @@ export default function SchedulerPage() {
       if (!res.ok) throw new Error("Failed to trigger execution");
       return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: TriggerResult) => {
       queryClient.invalidateQueries({ queryKey: ["cookies"] }); // Refresh statuses
-      
-      const allSuccess = data.results.every((r: any) => r.status === "SUCCESS");
+
+      const allSuccess = data.results.every((r) => r.status === "SUCCESS");
       if (allSuccess) {
         toast.success("Manual execution successful!");
       } else {
@@ -169,7 +193,7 @@ export default function SchedulerPage() {
     }
   }
 
-  function openEditDialog(sched: any) {
+  function openEditDialog(sched: Schedule) {
     setEditingId(sched.id);
     setName(sched.name);
     setCookieId(sched.cookieId.toString());
@@ -236,7 +260,7 @@ export default function SchedulerPage() {
                     <SelectValue placeholder="Select a stored cookie" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border text-popover-foreground">
-                    {cookies.map((c: any) => (
+                    {cookies.map((c) => (
                       <SelectItem key={c.id} value={c.id.toString()}>{c.label}</SelectItem>
                     ))}
                   </SelectContent>
@@ -337,7 +361,7 @@ export default function SchedulerPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              schedules.map((schedule: any) => (
+              schedules.map((schedule) => (
                 <TableRow key={schedule.id} className={`border-border hover:bg-muted/50 transition-colors ${!schedule.isActive ? 'opacity-50' : ''}`}>
                   <TableCell className="text-center">
                     <Switch

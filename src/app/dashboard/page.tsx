@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Cookie, CalendarClock, Activity, AlertCircle, Clock, ScrollText, ArrowUp } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 function calculateTimeUntilSchedule(scheduleTime: string): { hours: number; minutes: number; seconds: number; totalSeconds: number } {
   const now = new Date();
@@ -39,15 +39,22 @@ interface ProgressBarProps {
 }
 
 function ProgressBar({ scheduleTime }: ProgressBarProps) {
-  const [progress, setProgress] = useState(100);
-  const [timeLeft, setTimeLeft] = useState(calculateTimeUntilSchedule(scheduleTime));
-  const [duration, setDuration] = useState(timeLeft.totalSeconds);
+  const [timeLeft, setTimeLeft] = useState(() => calculateTimeUntilSchedule(scheduleTime));
+
+  const duration = useMemo(() => timeLeft.totalSeconds, [timeLeft.totalSeconds]);
+  const progress = useMemo(
+    () => {
+      if (duration > 0) {
+        const newProgress = (timeLeft.totalSeconds / duration) * 100;
+        return Math.max(0, Math.min(100, newProgress));
+      }
+      return 0;
+    },
+    [timeLeft.totalSeconds, duration]
+  );
 
   useEffect(() => {
-    const initial = calculateTimeUntilSchedule(scheduleTime);
-    setTimeLeft(initial);
-    setDuration(initial.totalSeconds);
-    setProgress(100);
+    setTimeLeft(calculateTimeUntilSchedule(scheduleTime));
   }, [scheduleTime]);
 
   useEffect(() => {
@@ -71,13 +78,6 @@ function ProgressBar({ scheduleTime }: ProgressBarProps) {
     return () => clearInterval(interval);
   }, [scheduleTime]);
 
-  useEffect(() => {
-    if (duration > 0) {
-      const newProgress = (timeLeft.totalSeconds / duration) * 100;
-      setProgress(Math.max(0, Math.min(100, newProgress)));
-    }
-  }, [timeLeft.totalSeconds, duration]);
-
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center text-sm">
@@ -98,14 +98,43 @@ function ProgressBar({ scheduleTime }: ProgressBarProps) {
   );
 }
 
+interface Schedule {
+  id: number;
+  name: string;
+  time: string;
+  type: string;
+  cookie: {
+    label: string;
+  };
+}
+
+interface DashboardStats {
+  activeCookies?: number;
+  totalCookies?: number;
+  activeSchedules?: number;
+  totalSchedules?: number;
+  successCount?: number;
+  failedCount?: number;
+  totalRedeemed?: number;
+  nextSchedules?: Schedule[];
+  recentLogs?: Array<{
+    id: number;
+    executedAt: string;
+    actionType: string;
+    status: string;
+    schedule?: { name: string };
+    cookie?: { label: string };
+  }>;
+}
+
 export default function Dashboard() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
       const res = await fetch("/api/dashboard");
       return res.json();
     },
-    refetchInterval: 30000, // Refresh every 30s
+    refetchInterval: 30000,
   });
 
   if (isLoading) {
@@ -207,7 +236,7 @@ export default function Dashboard() {
           <CardContent>
             {stats?.nextSchedules && stats.nextSchedules.length > 0 ? (
               <div className="max-h-[400px] overflow-y-auto space-y-3 pr-2 scrollbar-hide">
-                {stats.nextSchedules.map((schedule: any, index: number) => (
+                {stats.nextSchedules.map((schedule: Schedule, index: number) => (
                   <div
                     key={schedule.id}
                     className={`rounded-lg bg-muted/50 p-4 ${
@@ -256,7 +285,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-4">
               {stats?.recentLogs && stats.recentLogs.length > 0 ? (
-                stats.recentLogs.map((log: any) => (
+                stats.recentLogs.map((log: DashboardStats['recentLogs'][number]) => (
                   <div key={log.id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
                     <div>
                       <div className="font-medium flex items-center gap-2">

@@ -26,6 +26,20 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+interface AccountData {
+  currentBalance: string;
+  consumption: string;
+}
+
+interface Cookie {
+  id: number;
+  label: string;
+  agentRouterCookie: string;
+  githubCookie: string;
+  status: "ACTIVE" | "EXPIRED";
+  accountData: AccountData;
+}
+
 function StatusBadge({ status }: { status: string }) {
   if (status === "ACTIVE") {
     return <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20"><CheckCircle2 className="w-3 h-3 mr-1" /> Active</Badge>;
@@ -36,7 +50,7 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge className="bg-muted text-muted-foreground hover:bg-muted/80"><HelpCircle className="w-3 h-3 mr-1" /> Unknown</Badge>;
 }
 
-function AccountDataDisplay({ accountData }: { accountData: any }) {
+function AccountDataDisplay({ accountData }: { accountData: AccountData }) {
   if (!accountData) return <span className="text-muted-foreground text-sm">-</span>;
 
   return (
@@ -67,7 +81,7 @@ export default function CookiesPage() {
     { name: "", value: "" }
   ]);
 
-  const { data: cookies = [], isLoading } = useQuery({
+  const { data: cookies = [], isLoading } = useQuery<Cookie[]>({
     queryKey: ["cookies"],
     queryFn: async () => {
       const res = await fetch("/api/cookies");
@@ -159,7 +173,7 @@ export default function CookiesPage() {
     return entries.length > 0 ? entries : [{ name: "", value: "" }];
   }
 
-  function openEditDialog(cookie: any) {
+  function openEditDialog(cookie: Cookie) {
     setEditingId(cookie.id);
     setLabel(cookie.label);
     setAgentRouterEntries(parseCookieString(cookie.agentRouterCookie || ""));
@@ -367,7 +381,7 @@ export default function CookiesPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              cookies.map((cookie: any) => (
+              cookies.map((cookie) => (
                 <TableRow key={cookie.id} className="border-border hover:bg-muted/50 transition-colors">
                   <TableCell className="font-medium text-foreground">{cookie.label}</TableCell>
                   <TableCell>

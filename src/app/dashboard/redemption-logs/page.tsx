@@ -12,11 +12,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUp } from "lucide-react";
 
+interface RedemptionLog {
+  id: number;
+  nominal: string;
+  previousBalance: string;
+  newBalance: string;
+  auditableData: string;
+  createdAt: string;
+  cookie?: {
+    id: number;
+    label: string;
+  };
+}
+
 export default function RedemptionLogsPage() {
-  const { data: logs = [], isLoading } = useQuery({
+  const { data: logs = [], isLoading } = useQuery<RedemptionLog[]>({
     queryKey: ["redemption-logs"],
     queryFn: async () => {
       const res = await fetch("/api/redemption-logs");
@@ -24,7 +37,7 @@ export default function RedemptionLogsPage() {
     },
   });
 
-  const totalRedeemed = (logs || []).reduce((sum: number, log: any) => {
+  const totalRedeemed = (logs || []).reduce((sum: number, log: RedemptionLog) => {
     const nominal = parseFloat(log.nominal?.replace(/[$,]/g, '') || '0');
     return sum + nominal;
   }, 0);
@@ -100,7 +113,7 @@ export default function RedemptionLogsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              logs.map((log: any) => (
+              logs.map((log: RedemptionLog) => (
                 <TableRow key={log.id} className="border-border hover:bg-muted/50 transition-colors">
                   <TableCell className="text-muted-foreground">
                     {format(new Date(log.createdAt), "MMM dd, yyyy HH:mm")}

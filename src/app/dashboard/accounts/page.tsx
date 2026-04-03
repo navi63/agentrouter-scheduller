@@ -33,6 +33,24 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+interface Account {
+  id: number;
+  username: string;
+  name: string;
+  cookieId: number;
+  cookie?: {
+    id: number;
+    label: string;
+    status: "ACTIVE" | "EXPIRED";
+  };
+}
+
+interface Cookie {
+  id: number;
+  label: string;
+  status: "ACTIVE" | "EXPIRED";
+}
+
 export default function AccountsPage() {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -43,7 +61,7 @@ export default function AccountsPage() {
   const [name, setName] = useState("");
   const [cookieId, setCookieId] = useState("");
 
-  const { data: accounts = [], isLoading: accountsLoading } = useQuery({
+  const { data: accounts = [], isLoading: accountsLoading } = useQuery<Account[]>({
     queryKey: ["accounts"],
     queryFn: async () => {
       const res = await fetch("/api/accounts");
@@ -51,7 +69,7 @@ export default function AccountsPage() {
     },
   });
 
-  const { data: cookies = [], isLoading: cookiesLoading } = useQuery({
+  const { data: cookies = [], isLoading: cookiesLoading } = useQuery<Cookie[]>({
     queryKey: ["cookies"],
     queryFn: async () => {
       const res = await fetch("/api/cookies");
@@ -60,7 +78,7 @@ export default function AccountsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (newAccount: any) => {
+    mutationFn: async (newAccount: Omit<Account, "id" | "cookie">) => {
       const res = await fetch("/api/accounts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -81,7 +99,7 @@ export default function AccountsPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: { id: number; username: string; name: string; cookieId: number }) => {
       const res = await fetch(`/api/accounts/${data.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -123,7 +141,7 @@ export default function AccountsPage() {
     }
   }
 
-  function openEditDialog(account: any) {
+  function openEditDialog(account: Account) {
     setEditingId(account.id);
     setUsername(account.username);
     setName(account.name);
@@ -185,7 +203,7 @@ export default function AccountsPage() {
                     <SelectValue placeholder="Select a stored cookie" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border text-popover-foreground">
-                    {cookies.map((c: any) => (
+                    {cookies.map((c) => (
                       <SelectItem key={c.id} value={c.id.toString()}>{c.label}</SelectItem>
                     ))}
                   </SelectContent>
@@ -229,7 +247,7 @@ export default function AccountsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              accounts.map((account: any) => (
+              accounts.map((account) => (
                 <TableRow key={account.id} className="border-border hover:bg-muted/50 transition-colors">
                   <TableCell className="font-medium text-foreground">{account.username}</TableCell>
                   <TableCell className="text-foreground">{account.name}</TableCell>
