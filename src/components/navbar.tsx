@@ -6,7 +6,6 @@ import { useState, useEffect } from "react";
 import { Clock, LogOut, User, Menu } from "lucide-react";
 import { useMobileMenu } from "@/components/mobile-menu-context";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -17,11 +16,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
-  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [currentTime, setCurrentTime] = useState<Date | null>(() => new Date());
   const { setIsMobileOpen } = useMobileMenu();
 
   useEffect(() => {
-    setCurrentTime(new Date());
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -44,7 +42,7 @@ export function Navbar() {
           },
         },
       });
-    } catch (error) {
+    } catch {
       toast.error("Failed to logout");
     }
   };

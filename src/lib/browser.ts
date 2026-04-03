@@ -132,11 +132,6 @@ async function setCookiesFromHeaders(
   }
 }
 
-async function getCookiesAsHeader(page: Page): Promise<string> {
-  const cookies = await page.cookies();
-  return cookies.map((c) => `${c.name}=${c.value}`).join("; ");
-}
-
 // ============================================================================
 // NAVIGATION HELPERS
 // ============================================================================

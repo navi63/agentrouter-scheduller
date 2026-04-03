@@ -62,7 +62,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    if (protectedRoute.roles && !protectedRoute.roles.includes(session.user.role as any)) {
+    if (protectedRoute.roles && !protectedRoute.roles.includes(session.user.role as "SUPER_ADMIN" | "USER")) {
       console.log("User role not authorized:", session.user.role, "Required:", protectedRoute.roles);
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }

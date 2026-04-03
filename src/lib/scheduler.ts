@@ -1,6 +1,7 @@
 import cron, { ScheduledTask } from "node-cron";
 import { prisma } from "@/lib/prisma";
 import { executeLogin, executeLogout } from "@/lib/agent-router";
+import type { Log } from "@prisma/client";
 
 const scheduledJobs = new Map<number, ScheduledTask>();
 
@@ -45,7 +46,7 @@ async function executeScheduleAction(scheduleId: number) {
   }
 
   for (const action of actions) {
-    let log: any = null;
+    let log: Log | null = null;
     const maxRetries = 3;
     let retryCount = 0;
     let success = false;

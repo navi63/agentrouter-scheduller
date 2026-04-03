@@ -1,14 +1,21 @@
 import { create } from "zustand";
 
+interface SessionUser {
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+}
+
+interface Session {
+  user: SessionUser | null;
+  expires: string;
+}
+
 interface AuthState {
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-    image: string | null;
-  } | null;
-  session: any | null;
-  setSession: (session: any) => void;
+  user: SessionUser | null;
+  session: Session | null;
+  setSession: (session: Session) => void;
   clearSession: () => void;
 }
 
