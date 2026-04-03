@@ -3,6 +3,100 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Cookie, CalendarClock, Activity, AlertCircle, Clock, ScrollText, ArrowUp } from "lucide-react";
+import { useState, useEffect } from "react";
+
+function calculateTimeUntilSchedule(scheduleTime: string): { hours: number; minutes: number; seconds: number; totalSeconds: number } {
+  const now = new Date();
+  const [scheduleHours, scheduleMinutes] = scheduleTime.split(':').map(Number);
+  const scheduleDate = new Date(now);
+  scheduleDate.setHours(scheduleHours, scheduleMinutes, 0, 0);
+
+  if (scheduleDate < now) {
+    scheduleDate.setDate(scheduleDate.getDate() + 1);
+  }
+
+  const diff = scheduleDate.getTime() - now.getTime();
+  const totalSeconds = Math.floor(diff / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return { hours, minutes, seconds, totalSeconds };
+}
+
+function formatTimeUntil(hours: number, minutes: number, seconds: number): string {
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+  return `${seconds}s`;
+}
+
+interface ProgressBarProps {
+  scheduleTime: string;
+}
+
+function ProgressBar({ scheduleTime }: ProgressBarProps) {
+  const [progress, setProgress] = useState(100);
+  const [timeLeft, setTimeLeft] = useState(calculateTimeUntilSchedule(scheduleTime));
+  const [duration, setDuration] = useState(timeLeft.totalSeconds);
+
+  useEffect(() => {
+    const initial = calculateTimeUntilSchedule(scheduleTime);
+    setTimeLeft(initial);
+    setDuration(initial.totalSeconds);
+    setProgress(100);
+  }, [scheduleTime]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        const newTotalSeconds = prev.totalSeconds - 1;
+
+        if (newTotalSeconds <= 0) {
+          return { hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 };
+        }
+
+        return {
+          hours: Math.floor(newTotalSeconds / 3600),
+          minutes: Math.floor((newTotalSeconds % 3600) / 60),
+          seconds: newTotalSeconds % 60,
+          totalSeconds: newTotalSeconds,
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [scheduleTime]);
+
+  useEffect(() => {
+    if (duration > 0) {
+      const newProgress = (timeLeft.totalSeconds / duration) * 100;
+      setProgress(Math.max(0, Math.min(100, newProgress)));
+    }
+  }, [timeLeft.totalSeconds, duration]);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center text-sm">
+        <span className="text-muted-foreground">Time remaining</span>
+        <span className="font-mono font-semibold text-indigo-400">
+          {formatTimeUntil(timeLeft.hours, timeLeft.minutes, timeLeft.seconds)}
+        </span>
+      </div>
+      <div className="relative h-2 bg-muted rounded-full overflow-hidden border border-border">
+        <div
+          className="absolute left-0 top-0 h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000 ease-linear"
+          style={{ width: `${progress}%` }}
+        >
+          <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -103,7 +197,7 @@ export default function Dashboard() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Next Upcoming */}
-        <Card className="bg-card border-border col-span-1">
+        <Card className="col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-indigo-400" />
@@ -112,22 +206,25 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {stats?.nextSchedule ? (
-              <div className="rounded-lg border border-border bg-muted/50 p-4 flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold text-lg">{stats.nextSchedule.name}</h3>
-                  <div className="flex gap-2 mt-2">
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-md border border-border">
-                      {stats.nextSchedule.cookie.label}
-                    </span>
-                    <span className="text-xs bg-indigo-500/10 text-indigo-500 border border-indigo-500/30 px-2 py-1 rounded-md">
-                      {stats.nextSchedule.type}
-                    </span>
+              <div className="rounded-lg bg-muted/50 p-4 border-animated-card">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="font-semibold text-lg">{stats.nextSchedule.name}</h3>
+                    <div className="flex gap-2 mt-2">
+                      <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-md border border-border">
+                        {stats.nextSchedule.cookie.label}
+                      </span>
+                      <span className="text-xs bg-indigo-500/10 text-indigo-500 border border-indigo-500/30 px-2 py-1 rounded-md">
+                        {stats.nextSchedule.type}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-indigo-400">{stats.nextSchedule.time}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Today</div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-indigo-400">{stats.nextSchedule.time}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Today</div>
-                </div>
+                <ProgressBar scheduleTime={stats.nextSchedule.time} />
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
