@@ -69,7 +69,7 @@ export default function SchedulerPage() {
   const [time, setTime] = useState("");
   const [cronExpression, setCronExpression] = useState("");
   const [timeMode, setTimeMode] = useState<"time" | "cron">("time");
-  const [type, setType] = useState("");
+  const [type, setType] = useState<"LOGIN" | "LOGIN_THEN_LOGOUT" | "LOGOUT">("LOGIN");
 
   const { data: schedules = [], isLoading: schedLoading } = useQuery<Schedule[]>({
     queryKey: ["schedules"],
@@ -108,7 +108,7 @@ export default function SchedulerPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: { id: number; name: string; cookieId: number; type: string; time: string }) => {
+    mutationFn: async (data: { id: number; name: string; cookieId: number; type: "LOGIN" | "LOGIN_THEN_LOGOUT" | "LOGOUT"; time: string }) => {
       const res = await fetch(`/api/schedules/${data.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -182,14 +182,24 @@ export default function SchedulerPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const scheduleData = editingId
-      ? { id: editingId, name, cookieId, type, time: timeMode === "time" ? time : cronExpression }
-      : { name, cookieId, type, time: timeMode === "time" ? time : cronExpression };
 
     if (editingId) {
-      updateMutation.mutate(scheduleData);
+      const updateData = {
+        id: editingId,
+        name,
+        cookieId: parseInt(cookieId),
+        type,
+        time: timeMode === "time" ? time : cronExpression,
+      };
+      updateMutation.mutate(updateData);
     } else {
-      createMutation.mutate(scheduleData);
+      const createData = {
+        name,
+        cookieId: parseInt(cookieId),
+        type,
+        time: timeMode === "time" ? time : cronExpression,
+      };
+      createMutation.mutate(createData);
     }
   }
 
@@ -222,7 +232,7 @@ export default function SchedulerPage() {
     setTime("");
     setCronExpression("");
     setTimeMode("time");
-    setType("");
+    setType("LOGIN");
   }
 
   return (
@@ -310,7 +320,7 @@ export default function SchedulerPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="type">Action Type</Label>
-                  <Select value={type} onValueChange={(val) => setType(val || "")} required>
+                  <Select value={type} onValueChange={(val) => setType(val as "LOGIN" | "LOGIN_THEN_LOGOUT" | "LOGOUT")}>
                     <SelectTrigger className="bg-background border-border">
                       <SelectValue placeholder="Action" />
                     </SelectTrigger>

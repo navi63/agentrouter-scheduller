@@ -285,7 +285,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-4">
               {stats?.recentLogs && stats.recentLogs.length > 0 ? (
-                stats.recentLogs.map((log: DashboardStats['recentLogs'][number]) => (
+                stats.recentLogs.map((log) => (
                   <div key={log.id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
                     <div>
                       <div className="font-medium flex items-center gap-2">

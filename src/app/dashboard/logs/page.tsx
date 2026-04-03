@@ -29,6 +29,15 @@ import {
 } from "@/components/ui/dialog";
 import { LogDetailView } from "@/components/log-detail-view";
 
+interface LogEntry {
+  id: number;
+  step: string;
+  level: string;
+  message: string;
+  metadata?: string;
+  timestamp: string;
+}
+
 interface Log {
   id: number;
   executedAt: string;
@@ -43,6 +52,7 @@ interface Log {
     id: number;
     label: string;
   };
+  entries?: LogEntry[];
 }
 
 interface LogsResponse {
@@ -66,7 +76,7 @@ export default function LogsPage() {
     refetchInterval: 15000,
   });
 
-  const { data: detailData, isLoading: isLoadingDetail } = useQuery<Log>({
+  const { data: detailData, isLoading: isLoadingDetail } = useQuery<Log & { entries: LogEntry[] }>({
     queryKey: ["log-detail", selectedLogId],
     queryFn: async () => {
       if (!selectedLogId) return null;
