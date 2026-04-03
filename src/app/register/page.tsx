@@ -37,7 +37,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await authClient.signUp.email(
+      await authClient.signUp.email(
         {
           email,
           password,
@@ -48,7 +48,7 @@ export default function RegisterPage() {
           onRequest: () => {
             // Loading state is already handled
           },
-          onSuccess: (ctx) => {
+          onSuccess: () => {
             toast.success("Account created successfully!");
             router.push("/dashboard");
           },
@@ -57,11 +57,7 @@ export default function RegisterPage() {
           },
         }
       );
-
-      if (error) {
-        toast.error(error.message || "Failed to create account");
-      }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);

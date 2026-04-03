@@ -23,14 +23,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe] = useState(false);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { data, error } = await authClient.signIn.email(
+      await authClient.signIn.email(
         {
           email,
           password,
@@ -41,7 +41,7 @@ export default function LoginPage() {
           onRequest: () => {
             // Loading state is already handled
           },
-          onSuccess: (ctx) => {
+          onSuccess: () => {
             toast.success("Successfully signed in!");
             router.push("/dashboard");
           },
@@ -50,11 +50,7 @@ export default function LoginPage() {
           },
         }
       );
-
-      if (error) {
-        toast.error(error.message || "Failed to sign in");
-      }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
@@ -67,7 +63,7 @@ export default function LoginPage() {
         provider: "github",
         callbackURL: "/dashboard",
       });
-    } catch (error) {
+    } catch {
       toast.error("Failed to sign in with GitHub");
     }
   };
@@ -171,7 +167,7 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex justify-center border-t border-slate-700">
             <p className="text-sm text-slate-400">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/register" className="text-indigo-400 hover:text-indigo-300 font-medium">
                 Sign up
               </Link>

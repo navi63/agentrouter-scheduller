@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Edit2, Mail, CheckCircle, XCircle, Calendar, Shield, Crown } from "lucide-react";
+import { Trash2, Edit2, CheckCircle, XCircle, Calendar, Shield, Crown } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -28,19 +28,31 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useState } from "react";
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: "USER" | "SUPER_ADMIN";
+  emailVerified: boolean;
+  createdAt: string;
+  _count: {
+    sessions: number;
+    accounts: number;
+  };
+}
+
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<any>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState("USER");
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["users"],
     queryFn: async () => {
       const res = await fetch("/api/users");
@@ -67,7 +79,7 @@ export default function UsersPage() {
       toast.success("User updated successfully");
       closeDialog();
     },
-    onError: (error: any) => toast.error(error.message || "Failed to update user"),
+    onError: (error: Error) => toast.error(error.message || "Failed to update user"),
   });
 
   const deleteMutation = useMutation({
@@ -83,10 +95,10 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("User deleted successfully");
     },
-    onError: (error: any) => toast.error(error.message || "Failed to delete user"),
+    onError: (error: Error) => toast.error(error.message || "Failed to delete user"),
   });
 
-  function handleEditUser(user: any) {
+  function handleEditUser(user: User) {
     setEditingUser(user);
     setUserName(user.name || "");
     setUserRole(user.role || "USER");
@@ -156,7 +168,7 @@ export default function UsersPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              users.map((user: any) => (
+              users.map((user) => (
                 <TableRow key={user.id} className="border-border hover:bg-muted/50 transition-colors">
                   <TableCell>
                     <div className="flex items-center gap-3">
